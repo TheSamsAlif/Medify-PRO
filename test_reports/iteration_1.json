@@ -1,0 +1,42 @@
+{
+  "summary": "Backend-only testing for Medify MVP completed. 28/28 pytest tests pass (100%) against external URL https://medify-health-1.preview.emergentagent.com/api. Covered patient CRUD, medicines + logs + adherence, prescriptions incl. auto-medicine creation and vision scan, chat (EN + BN + history persistence + clear), appointments, health records (with image_base64), hospitals (sorted), emergency contacts (999/16263/10921 present), SOS (notifies guardian+doctor). All responses verified free of MongoDB _id. Fixed one backend bug: /api/prescriptions/scan was returning 502 when OpenRouter rejected an image; now correctly returns 200 with ok=false fallback schema per spec.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "PUT /api/medicines/{id}", "issue": "Empty strings are skipped due to `v != \"\"` filter, so clearing an instructions/dosage field is impossible via update. Consider only filtering None."},
+      {"endpoint": "POST /api/medicines (frequency parser)", "issue": "Logic in lines 286-288 maps slot index i -> defaults[slots[i]] but skips slots with '0'. For frequency '0-0-1' it would map to slots[0]='morning' (wrong); only works because filter happens before mapping. Verify with '0-1-0' which currently picks 'morning' instead of 'noon'."},
+      {"endpoint": "POST /api/prescriptions auto-medicine", "issue": "When auto-creating medicines from prescription, frequency 'startswith(\"1\")' adds 08:00 for ANY pattern starting with 1 (e.g. '1-0-0' would also match endswith('1') giving wrong evening slot). Frequency pattern parsing diverges from /api/medicines."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "lucide-react-native + react-native-svg", "issue": "Expo bundler ERROR observed in /var/log/supervisor/expo.err.log: 'import * as NativeSvg from \"react-native-svg\"' fails. Import chain: app/emergency.tsx -> lucide-react-native -> react-native-svg. react-native-svg is likely missing from package.json (frontend testing was OUT OF SCOPE but reporting since logs show bundler crash)."}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_medify_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Install react-native-svg (yarn add react-native-svg) so lucide-react-native icons load on the Expo web bundle; emergency.tsx currently breaks the bundler.",
+    "Consider unifying frequency-to-times parsing between POST /api/medicines and the auto-medicine logic inside POST /api/prescriptions; current divergence can produce wrong times for patterns like '0-1-0' or '1-0-0'.",
+    "PUT /api/medicines should allow clearing string fields (currently filters out empty strings)."
+  ],
+  "critical_code_review_comments": [
+    "server.py is 703 lines - consider splitting into routers (patient, medicines, prescriptions, chat, appointments, records, emergency) for maintainability.",
+    "Hardcoded DEMO_PATIENT_ID is acceptable for MVP but should be moved to config when multi-user support is added.",
+    "/api/chat trims history to last 10 docs but uses sort desc then reverse - efficient; however it includes the system role implicitly so 10 messages per session may be insufficient for longer conversations - consider 20.",
+    "OpenRouter API key is committed in /app/backend/.env. Acceptable for MVP/test environment but should be rotated before any public release.",
+    "Scan endpoint now correctly returns 200 with ok=false fallback for all OpenRouter failures (timeout, HTTP error, parse error) - fixed in this iteration."
+  ],
+  "updated_files": [
+    "/app/backend/server.py (fixed scan_prescription HTTPStatusError handler to return 200 with ok=false fallback instead of raising 502)",
+    "/app/backend/tests/test_medify_api.py (new pytest suite, 28 tests)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "N/A (not in scope)"},
+  "seed_data_creation": "No persistent seed required - backend auto-seeds patient (Rahima Begum), 6 emergency contacts, 7 hospitals on startup. Test data is TEST_ prefixed and cleaned up by each test class.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend API at https://medify-health-1.preview.emergentagent.com/api - all 28 endpoints pass via /app/backend/tests/test_medify_api.py. OpenRouter free tier may 429 - chat tests already retry. Frontend bundler currently crashes due to missing react-native-svg (lucide-react-native dep) - not tested.",
+  "rca_of_issue": "Scan endpoint bug RCA: /api/prescriptions/scan caught httpx.HTTPStatusError separately and raised HTTPException(502) instead of returning ok=false fallback. When OpenRouter rejects a small/invalid image with 400, the client received 502 - violating the spec ('must return 200 with ok flag and extracted schema'). Mitigation applied: collapsed HTTPStatusError handler to return the same fallback dict as the generic Exception path."
+}
