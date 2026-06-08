@@ -3,9 +3,10 @@ import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, TouchableOpaci
 import { useFocusEffect, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
-import { Calendar, ChevronRight, HeartPulse, Languages, Moon, Phone, ShieldAlert, User, Stethoscope } from "lucide-react-native";
+import { Calendar, ChevronRight, HeartPulse, Languages, LogOut, Moon, Phone, ShieldAlert, User, Stethoscope } from "lucide-react-native";
 
 import { useApp } from "@/src/lib/AppContext";
+import { useAuth } from "@/src/lib/AuthContext";
 import { api } from "@/src/lib/api";
 
 interface Patient {
@@ -22,6 +23,7 @@ interface Patient {
 
 export default function ProfileScreen() {
   const { colors, t, lang, setLang, mode, setMode, isDark } = useApp();
+  const { user, logout } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -131,6 +133,35 @@ export default function ProfileScreen() {
             testID="shortcut-emergency"
           />
         </View>
+
+        {/* Account info & Logout */}
+        <Text style={[styles.section, { color: colors.text }]}>{lang === "bn" ? "একাউন্ট" : "Account"}</Text>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.row}>
+            <View style={[styles.rowIcon, { backgroundColor: colors.primarySoft }]}>
+              <User color={isDark ? "#fff" : colors.primary} size={22} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, { color: colors.text }]} numberOfLines={1}>{user?.email || ""}</Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 13 }}>{lang === "bn" ? "সাইন ইন" : "Signed in"}</Text>
+            </View>
+          </View>
+          <Divider colors={colors} />
+          <TouchableOpacity testID="logout-btn" onPress={logout} style={styles.row} activeOpacity={0.7}>
+            <View style={[styles.rowIcon, { backgroundColor: colors.dangerSoft }]}>
+              <LogOut color={colors.danger} size={22} />
+            </View>
+            <Text style={[styles.rowLabel, { color: colors.danger, fontWeight: "700" }]}>
+              {lang === "bn" ? "লগ আউট" : "Log out"}
+            </Text>
+            <ChevronRight color={colors.textMuted} size={20} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.devCredit}>
+          <Text style={[styles.devCreditLine, { color: colors.textMuted }]}>{lang === "bn" ? "তৈরি করেছেন" : "Developed by"}</Text>
+          <Text style={[styles.devCreditName, { color: colors.primary }]}>Sams Alif</Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -188,4 +219,7 @@ const styles = StyleSheet.create({
   rowValue: { fontSize: 14, marginRight: 6 },
   callBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   divider: { height: 1, marginLeft: 66 },
+  devCredit: { marginTop: 30, alignItems: "center" },
+  devCreditLine: { fontSize: 10, letterSpacing: 1.4, textTransform: "uppercase", fontWeight: "600" },
+  devCreditName: { fontSize: 14, fontWeight: "800", marginTop: 2 },
 });
