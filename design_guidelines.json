@@ -1,0 +1,107 @@
+{
+  "theme": "Light & Dark Toggle (Primary: Light)",
+  "archetype": "Organic & Earthy with High-Contrast adaptations for Accessibility (Medical Blue, White, Soft Green)",
+  "typography": {
+    "font_family_headings": "Work Sans, sans-serif",
+    "font_family_body": "DM Sans, sans-serif",
+    "scale": {
+      "h1": "text-4xl tracking-tight leading-tight font-bold",
+      "h2": "text-3xl tracking-tight leading-snug font-semibold",
+      "h3": "text-2xl leading-snug font-semibold",
+      "body_large": "text-xl leading-relaxed font-medium",
+      "body": "text-lg leading-relaxed font-medium",
+      "small": "text-base uppercase tracking-wider font-bold"
+    },
+    "guidelines": "For elderly users, minimum body text size is 18px (text-lg). Headings must be highly legible. Avoid lightweight fonts; use Medium (500) and SemiBold (600) for better contrast. NativeWind classes apply."
+  },
+  "colors": {
+    "light": {
+      "background": "#F8FAFC",
+      "surface": "#FFFFFF",
+      "primary": "#1E3A8A",
+      "secondary": "#10B981",
+      "accent": "#F59E0B",
+      "danger_sos": "#EF4444",
+      "text_primary": "#0F172A",
+      "text_secondary": "#475569",
+      "border": "#E2E8F0"
+    },
+    "dark": {
+      "background": "#0F172A",
+      "surface": "#1E293B",
+      "primary": "#60A5FA",
+      "secondary": "#34D399",
+      "accent": "#FBBF24",
+      "danger_sos": "#F87171",
+      "text_primary": "#F8FAFC",
+      "text_secondary": "#94A3B8",
+      "border": "#334155"
+    }
+  },
+  "spacing_and_layout": {
+    "grid_system": "8px base scale",
+    "padding": "Generous padding (p-6, p-8) everywhere to prevent accidental mistaps. Large touch targets are critical.",
+    "touch_targets": "Minimum 56x56px for all interactive elements (buttons, icons, tabs).",
+    "corner_radius": "Rounded-2xl (16px) or rounded-3xl (24px) for cards. Fully rounded (rounded-full) for primary buttons.",
+    "patterns": {
+      "dashboard": "Bento-style card layout but vertical and highly structured for simplicity. 1 column on mobile.",
+      "bottom_nav": "Fixed bottom tab bar. Use glassmorphism (backdrop-blur-xl bg-white/80) here to keep it premium but ensure active icons have high contrast."
+    }
+  },
+  "components": {
+    "buttons": "Large (min-h-14), rounded-full, distinct background color. Avoid ghost buttons for primary actions. Use solid primary color or bright SOS red for emergencies.",
+    "cards": "Solid flat surfaces (no glass for health data). Subtle shadow-sm in light mode, border-border/40 in dark mode.",
+    "forms": "Large input fields (min-h-14), clear borders, high contrast placeholder text. Voice input microphone icon explicitly visible inside every major input.",
+    "sos_button": "Fixed or prominently displayed large circular red button (bg-red-500). Must include ripple animation.",
+    "language_toggle": "Prominent top-right toggle switch (EN / BN) clearly visible on dashboard."
+  },
+  "animations": {
+    "guidelines": "Smooth, purposeful micro-interactions. Haptic feedback on all successful button taps. Gentle pulsing animation for the AI Voice Assistant state.",
+    "transitions": "Slide up for modals, fade for tab transitions. Respect prefers-reduced-motion."
+  },
+  "accessibility": {
+    "contrast": "APCA standard compliant. Minimum 4.5:1 ratio for all text. For elderly, strive for 7:1 on primary text.",
+    "voice": "Integrate text-to-speech for elderly users. Include a 'Read Aloud' toggle on long text pages (like medicine explainers). Voice-first navigation via assistant.",
+    "language": "UI must support seamless toggle between English and Bengali.",
+    "data_testid": "All interactive elements MUST have role-based data-testid (e.g., 'sos-emergency-button', 'tab-medicines', 'scan-prescription-button')."
+  },
+  "media": {
+    "image_urls": [
+      {
+        "url": "https://images.unsplash.com/photo-1616286608358-0e1b143f7d2f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTB8MHwxfHNlYXJjaHwxfHxlbGRlcmx5JTIwaGVhbHRoY2FyZSUyMHNtaWxpbmd8ZW58MHx8fHwxNzgwOTA3MDI1fDA&ixlib=rb-4.1.0&q=85",
+        "category": "onboarding_hero",
+        "description": "Smiling elderly woman, welcoming and friendly face for the first onboarding screen."
+      },
+      {
+        "url": "https://images.pexels.com/photos/8376222/pexels-photo-8376222.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "category": "ai_assistant_avatar",
+        "description": "Elderly doctor in a white coat conducting an online consultation, used as the persona face for the AI Health Assistant."
+      },
+      {
+        "url": "https://images.pexels.com/photos/7034123/pexels-photo-7034123.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "category": "medicine_empty_state",
+        "description": "Colorful round tablets arranged on a neutral surface, perfect for the empty state of the Medicines schedule tab."
+      }
+    ]
+  },
+  "icons": {
+    "library": "lucide-react-native",
+    "style": "Regular or Medium weight. Large size (min 28px) for visibility.",
+    "commands": "yarn add lucide-react-native"
+  },
+  "key_screens": [
+    {
+      "name": "Dashboard (Home)",
+      "layout": "Header with Profile & Lang Toggle -> Daily Adherence Score Ring -> Upcoming Medicines List (Horizontal scroll or distinct vertical cards) -> Quick Actions (Scan Prescription, Find Hospital) -> Floating SOS Button."
+    },
+    {
+      "name": "Medicines & Reminders",
+      "layout": "Date strip at top -> Timeline view of medications (Morning, Afternoon, Evening) with clear Check/Cross (Taken/Skipped) buttons. Large typography for medicine names."
+    },
+    {
+      "name": "AI Health Assistant",
+      "layout": "Chat interface. Large text bubbles. Sticky bottom input with a prominent Microphone icon for Voice-first interaction. Avatar of the AI doctor at the top."
+    }
+  ],
+  "instructions_to_main_agent": "Ensure React Native Expo setup uses NativeWind for Tailwind styling. Implement strict semantic data-testids for all interactive elements. For Voice commands, integrate Expo Speech and Audio API. The interface must prioritize extreme legibility for elderly users (larger fonts, distinct active states). Avoid complex swipe gestures; stick to explicit taps."
+}
