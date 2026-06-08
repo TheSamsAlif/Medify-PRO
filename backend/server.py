@@ -389,9 +389,12 @@ async def create_prescription(p: PrescriptionCreate):
         if not med.times:
             slots = []
             freq = (med.frequency or "").lower()
-            if "morning" in freq or freq.startswith("1"): slots.append("08:00")
-            if "noon" in freq or "afternoon" in freq: slots.append("13:00")
-            if "evening" in freq or "night" in freq or freq.endswith("1"): slots.append("20:00")
+            if "morning" in freq or freq.startswith("1"):
+                slots.append("08:00")
+            if "noon" in freq or "afternoon" in freq:
+                slots.append("13:00")
+            if "evening" in freq or "night" in freq or freq.endswith("1"):
+                slots.append("20:00")
             if not slots:
                 slots = ["08:00", "20:00"]
             med.times = slots
@@ -566,7 +569,7 @@ async def chat(req: ChatRequest):
             resp.raise_for_status()
             data = resp.json()
         reply = data["choices"][0]["message"]["content"].strip()
-    except Exception as e:
+    except Exception:
         logging.exception("Chat failure")
         reply = (
             "দুঃখিত, এই মুহূর্তে আমি উত্তর দিতে পারছি না। অনুগ্রহ করে কিছুক্ষণ পরে আবার চেষ্টা করুন।"
