@@ -1,0 +1,288 @@
+"use client"
+
+import { useState, useRef, useEffect } from "react"
+import { motion } from "framer-motion"
+import {
+  Bot,
+  Send,
+  User,
+  Mic,
+  Square,
+  Trash2,
+  Sparkles,
+  Heart,
+  Stethoscope,
+  Pill,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
+import type { ChatMessage } from "@/types"
+
+const suggestions = [
+  { icon: Pill, text: "Napa Extra 500mg কি কাজ করে?" },
+  { icon: Stethoscope, text: "ডায়াবেটিস রোগীর খাদ্য তালিকা" },
+  { icon: Heart, text: "উচ্চ রক্তচাপের ওষুধের পার্শ্বপ্রতিক্রিয়া" },
+  { icon: AlertTriangle, text: "ওষুধ খেতে ভুলে গেলে কী করব?" },
+]
+
+export default function AssistantPage() {
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [input, setInput] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetchHistory()
+  }, [])
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [messages])
+
+  const fetchHistory = async () => {
+    try {
+      const res = await fetch("/api/chat/history")
+      if (res.ok) {
+        const data = await res.json()
+        setMessages(data)
+      }
+    } catch {
+      // silent fail
+    }
+  }
+
+  const handleSend = async () => {
+    if (!input.trim() || loading) return
+
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      userId: "",
+      role: "user",
+      content: input,
+      createdAt: new Date().toISOString(),
+    }
+
+    setMessages(prev => [...prev, userMsg])
+    setInput("")
+    setLoading(true)
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        const assistantMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          userId: "",
+          role: "assistant",
+          content: data.response,
+          createdAt: new Date().toISOString(),
+        }
+        setMessages(prev => [...prev, assistantMsg])
+      } else {
+        toast.error("AI রেসপন্স পেতে সমস্যা হয়েছে")
+      }
+    } catch {
+      toast.error("AI সহায়ক কাজ করছে না")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
+  const clearChat = async () => {
+    try {
+      await fetch("/api/chat/history", { method: "DELETE" })
+      setMessages([])
+      toast.success("চ্যাট ক্লিয়ার করা হয়েছে")
+    } catch {
+      toast.error("ক্লিয়ার করতে সমস্যা হয়েছে")
+    }
+  }
+
+  const toggleRecording = () => {
+    if (!isRecording) {
+      if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+        setIsRecording(true)
+        toast.info("বলুন... আমি শুনছি")
+      } else {
+        toast.error("ভয়েস রিকগনিশন আপনার ব্রাউজারে সাপোর্ট করে না")
+      }
+    } else {
+      setIsRecording(false)
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="h-[calc(100vh-8rem)] flex flex-col"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
+            <Bot className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">AI স্বাস্থ্য সহায়ক</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              আপনার ব্যক্তিগত AI মেডিকেল অ্যাসিস্ট্যান্ট
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="gap-1">
+            <Sparkles className="w-3 h-3" />
+            AI
+          </Badge>
+          {messages.length > 0 && (
+            <Button variant="ghost" size="icon" onClick={clearChat} className="rounded-full">
+              <Trash2 className="w-4 h-4 text-gray-400" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <Card className="flex-1 flex flex-col border-0 shadow-lg shadow-black/5 overflow-hidden">
+        <ScrollArea ref={scrollRef} className="flex-1 p-4 md:p-6">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
+              <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center mb-6 shadow-xl shadow-primary/20">
+                <Bot className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">আমি Medify AI</h3>
+              <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
+                আমি আপনার ব্যক্তিগত স্বাস্থ্যসেবা সহায়ক। ওষুধ, রোগ, ডায়েট, লাইফস্টাইল — সব বিষয়ে 
+                বাংলা বা ইংরেজিতে问我, আমি উত্তর দেব।
+              </p>
+              <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
+                {suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setInput(s.text)}
+                    className="flex items-start gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all text-left"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <s.icon className="w-4 h-4 text-primary" />
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{s.text}</p>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-8 text-xs text-gray-400 dark:text-gray-600 max-w-md">
+                * এই তথ্য শিক্ষামূলক এবং লাইসেন্সপ্রাপ্ত ডাক্তারের পরামর্শের বিকল্প নয়।
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {messages.map((msg) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  {msg.role === "assistant" && (
+                    <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 mt-1">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 ${
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-tr-sm"
+                        : "bg-gray-100 dark:bg-gray-900 rounded-tl-sm"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                  </div>
+                  {msg.role === "user" && (
+                    <div className="w-8 h-8 rounded-xl bg-gray-200 dark:bg-gray-800 flex items-center justify-center flex-shrink-0 mt-1">
+                      <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+              {loading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex gap-3"
+                >
+                  <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-900 rounded-2xl rounded-tl-sm px-4 py-3">
+                    <div className="flex gap-1">
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                      <span className="text-sm text-gray-500">ভাবছে...</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          )}
+        </ScrollArea>
+
+        <div className="border-t border-gray-200 dark:border-gray-800 p-4">
+          <div className="flex items-end gap-2">
+            <div className="flex-1 relative">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="আপনার প্রশ্ন লিখুন... (Enter চাপুন পাঠাতে)"
+                rows={1}
+                className="w-full resize-none rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary min-h-[48px] max-h-32"
+                style={{ height: "auto" }}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement
+                  target.style.height = "auto"
+                  target.style.height = Math.min(target.scrollHeight, 128) + "px"
+                }}
+              />
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleRecording}
+              className={`rounded-full w-11 h-11 flex-shrink-0 ${isRecording ? "bg-red-500 text-white animate-pulse" : "text-gray-400"}`}
+            >
+              {isRecording ? <Square className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+            </Button>
+            <Button
+              onClick={handleSend}
+              disabled={!input.trim() || loading}
+              className="rounded-full w-11 h-11 flex-shrink-0 gradient-primary text-white"
+            >
+              <Send className="w-5 h-5" />
+            </Button>
+          </div>
+          <p className="text-[10px] text-gray-400 dark:text-gray-600 mt-2 text-center">
+            Medify AI শিক্ষামূলক তথ্য প্রদান করে, এটি লাইসেন্সপ্রাপ্ত ডাক্তারের পরামর্শের বিকল্প নয়।
+          </p>
+        </div>
+      </Card>
+    </motion.div>
+  )
+}
