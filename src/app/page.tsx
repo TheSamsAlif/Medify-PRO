@@ -460,8 +460,23 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
-          <div className="mt-12 pt-8 border-t border-gray-200/50 dark:border-gray-800/50 text-center text-sm text-gray-600 dark:text-gray-400">
-            &copy; {new Date().getFullYear()} Medify. All rights reserved. Built with care for everyone.
+          <div className="mt-12 pt-8 border-t border-gray-200/50 dark:border-gray-800/50">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center"
+            >
+              <p className="text-sm text-gray-400 dark:text-gray-600 mb-2">
+                &copy; {new Date().getFullYear()} Medify. All rights reserved.
+              </p>
+              <motion.p
+                className="text-lg font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-pulse"
+                whileHover={{ scale: 1.05 }}
+              >
+                Developed by Sams Alif
+              </motion.p>
+            </motion.div>
           </div>
         </div>
       </footer>

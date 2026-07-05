@@ -59,8 +59,9 @@ export default function RegisterPage() {
 
       toast.success("অ্যাকাউন্ট তৈরি হয়েছে! অনুগ্রহ করে লগইন করুন")
       router.push("/auth/login")
-    } catch {
-      toast.error("রেজিস্টার করতে সমস্যা হয়েছে")
+    } catch (err) {
+      console.error("Registration error:", err)
+      toast.error("সার্ভার ত্রুটি। নিশ্চিত করুন PostgreSQL চলছে এবং DATABASE_URL সঠিক।")
     } finally {
       setIsLoading(false)
     }

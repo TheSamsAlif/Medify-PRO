@@ -30,15 +30,22 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        toast.error("ভুল ইমেইল বা পাসওয়ার্ড")
+        if (result.error.includes("Configuration")) {
+          toast.error("সার্ভার কনফিগারেশন ত্রুটি। অনুগ্রহ করে .env.local এ DATABASE_URL ও AUTH_SECRET সেট করুন।")
+        } else if (result.error.includes("CredentialsSignin")) {
+          toast.error("ভুল ইমেইল বা পাসওয়ার্ড")
+        } else {
+          toast.error(`লগইন ব্যর্থ: ${result.error}`)
+        }
         return
       }
 
       toast.success("সফলভাবে লগইন হয়েছে")
       router.push("/dashboard")
       router.refresh()
-    } catch {
-      toast.error("লগইন করতে সমস্যা হয়েছে")
+    } catch (err) {
+      console.error("Login error:", err)
+      toast.error("সার্ভার ত্রুটি। নিশ্চিত করুন PostgreSQL চলছে এবং DATABASE_URL সঠিক।")
     } finally {
       setIsLoading(false)
     }
