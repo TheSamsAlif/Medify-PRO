@@ -115,22 +115,74 @@ export default function HospitalsPage() {
     setLoading(true)
     setError("")
     try {
-      const params = new URLSearchParams()
-      if (lat && lng) { params.set("lat", lat.toString()); params.set("lng", lng.toString()) }
-      if (filter !== "all") params.set("type", filter)
-      const res = await fetch(`/api/hospitals?${params}`)
-      if (res.ok) {
-        const data = await res.json()
-        if (Array.isArray(data)) {
-          setHospitals(data)
-          if (data.length === 0) setError("এই এলাকায় কোনো হাসপাতাল পাওয়া যায়নি। অন্য এলাকা সার্চ করুন।")
-        } else {
-          setError(data.error || "ডাটা লোড করতে সমস্যা হয়েছে")
-        }
-      } else {
-        const errData = await res.json().catch(() => ({}))
-        setError(errData.error || `API Error: ${res.status}`)
+      if (!lat || !lng) {
+        lat = defaultCenter[0]
+        lng = defaultCenter[1]
       }
+
+      // Call Overpass API directly from browser (avoids Vercel server-side issues)
+      const type = filter !== "all" ? filter : "all"
+      const around = `(around:5000,${lat},${lng})`
+      let filters = ""
+      if (type === "pharmacy") {
+        filters = `node["amenity"="pharmacy"]${around};`
+      } else if (type === "diagnostic") {
+        filters = `node["healthcare"="doctor"]${around};`
+      } else if (type === "hospital") {
+        filters = `node["amenity"="hospital"]${around};way["amenity"="hospital"]${around};node["amenity"="clinic"]${around};`
+      } else {
+        filters = `node["amenity"="hospital"]${around};node["amenity"="clinic"]${around};node["amenity"="pharmacy"]${around};node["healthcare"="doctor"]${around};way["amenity"="hospital"]${around};`
+      }
+      const query = `[out:json][timeout:8];(${filters});out center 20;`
+
+      const res = await fetch("https://overpass-api.de/api/interpreter", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `data=${encodeURIComponent(query)}`,
+      })
+
+      if (!res.ok) {
+        setError(`Overpass API error: ${res.status}`)
+        setLoading(false)
+        return
+      }
+
+      const data = await res.json()
+      if (!data.elements?.length) {
+        setError("এই এলাকায় কোনো হাসপাতাল পাওয়া যায়নি। অন্য এলাকা সার্চ করুন।")
+        setHospitals([])
+        setLoading(false)
+        return
+      }
+
+      const hospitals = data.elements
+        .filter((el: Record<string, unknown>) => el.tags)
+        .map((el: Record<string, unknown>) => {
+          const t = el.tags as Record<string, string>
+          const lat2 = el.type === "way" ? ((el.center as Record<string, number>)?.lat ?? lat!) : (el.lat as number)
+          const lng2 = el.type === "way" ? ((el.center as Record<string, number>)?.lon ?? lng!) : (el.lon as number)
+          const ot = t.amenity || t.healthcare || "hospital"
+          const typeLabel: Record<string, string> = { hospital: "hospital", clinic: "hospital", pharmacy: "pharmacy", doctor: "diagnostic" }
+          return {
+            id: `${el.type}-${el.id}`,
+            name: t.name || t["name:bn"] || (ot === "hospital" ? "হাসপাতাল" : ot === "pharmacy" ? "ফার্মেসী" : ot === "clinic" ? "ক্লিনিক" : "ডাক্তার"),
+            type: typeLabel[ot] || "hospital",
+            address: t["addr:full"] || t["addr:street"] || t["addr:city"] || "",
+            latitude: lat2,
+            longitude: lng2,
+            phone: t.phone || t["contact:phone"] || null,
+            rating: null,
+            emergency: ot === "hospital",
+            ambulance: t.ambulance === "yes",
+            bloodBank: false,
+            specialties: [ot],
+            distance: calcDist(lat!, lng!, lat2, lng2),
+          }
+        })
+        .sort((a: { distance: number }, b: { distance: number }) => a.distance - b.distance)
+        .slice(0, 50)
+
+      setHospitals(hospitals)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "নেটওয়ার্ক ত্রুটি"
       setError(msg)
