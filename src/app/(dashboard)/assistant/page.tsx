@@ -2,19 +2,18 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
-import { Send, Mic, Bot, User, Loader2, Trash2, Sparkles, Square } from "lucide-react"
+import { Send, Mic, Bot, User, Loader2, Trash2, Sparkles, Square, Copy, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import type { ChatMessage } from "@/types"
 
 const suggestions = [
   { text: "Napa Extra 500mg কি কাজ করে?" },
   { text: "ডায়াবেটিস রোগীর খাদ্য তালিকা" },
-  { text: "উচ্চ রক্তচাপের ওষুধের পার্শ্বপ্রতিক্রিয়া" },
+  { text: "amar jor bhut beshi, ki korbo?" },
   { text: "ওষুধ খেতে ভুলে গেলে কী করব?" },
 ]
 
@@ -23,18 +22,23 @@ export default function AssistantPage() {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
+  const [streamingText, setStreamingText] = useState("")
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const streamingRef = useRef<number | null>(null)
 
   useEffect(() => {
     fetchHistory()
+    return () => {
+      if (streamingRef.current) clearInterval(streamingRef.current)
+    }
   }, [])
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [messages])
+  }, [messages, streamingText])
 
   const fetchHistory = async () => {
     try {
@@ -44,8 +48,31 @@ export default function AssistantPage() {
         setMessages(data)
       }
     } catch {
-      // silent fail
+      // silent
     }
+  }
+
+  const typeResponse = (text: string) => {
+    let index = 0
+    setStreamingText("")
+    streamingRef.current = window.setInterval(() => {
+      if (index < text.length) {
+        setStreamingText(text.slice(0, index + 1))
+        index++
+      } else {
+        if (streamingRef.current) clearInterval(streamingRef.current)
+        streamingRef.current = null
+        const assistantMsg: ChatMessage = {
+          id: Date.now().toString(),
+          userId: "",
+          role: "assistant",
+          content: text,
+          createdAt: new Date().toISOString(),
+        }
+        setMessages(prev => [...prev, assistantMsg])
+        setStreamingText("")
+      }
+    }, 15)
   }
 
   const handleSend = async () => {
@@ -73,16 +100,22 @@ export default function AssistantPage() {
 
       if (res.ok) {
         const data = await res.json()
-        const assistantMsg: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          userId: "",
-          role: "assistant",
-          content: data.response,
-          createdAt: new Date().toISOString(),
+        // Use typing animation for longer responses
+        if (data.response && data.response.length > 50) {
+          typeResponse(data.response)
+        } else {
+          const assistantMsg: ChatMessage = {
+            id: Date.now().toString(),
+            userId: "",
+            role: "assistant",
+            content: data.response,
+            createdAt: new Date().toISOString(),
+          }
+          setMessages(prev => [...prev, assistantMsg])
         }
-        setMessages(prev => [...prev, assistantMsg])
       } else if (res.status === 401) {
-        toast.error("লগইন প্রয়োজন")
+        toast.error("লগইন করুন")
+        window.location.href = "/auth/login"
       } else {
         toast.error("AI রেসপন্স পেতে সমস্যা হয়েছে")
       }
@@ -110,17 +143,43 @@ export default function AssistantPage() {
     }
   }
 
+  const copyMessage = (text: string) => {
+    navigator.clipboard.writeText(text)
+    toast.success("কপি করা হয়েছে")
+  }
+
+  const retryLast = () => {
+    const lastUser = [...messages].reverse().find(m => m.role === "user")
+    if (lastUser) {
+      setInput(lastUser.content)
+      setMessages(prev => prev.slice(0, -2))
+    }
+  }
+
   const toggleRecording = () => {
     if (!isRecording) {
-      if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-        setIsRecording(true)
-        toast.info("বলুন... আমি শুনছি")
-      } else {
-        toast.error("ভয়েস রিকগনিশন আপনার ব্রাউজারে সাপোর্ট করে না")
-      }
-    } else {
-      setIsRecording(false)
+      toast.error("ভয়েস ইনপুট শীঘ্রই আসছে")
+      return
     }
+  }
+
+  const renderContent = (text: string) => {
+    // Simple markdown-like rendering
+    return text
+      .split("\n")
+      .map((line, i) => {
+        if (line.startsWith("**") && line.endsWith("**")) {
+          return <p key={i} className="font-bold text-sm mt-2 mb-1">{line.slice(2, -2)}</p>
+        }
+        if (line.startsWith("• ") || line.startsWith("- ")) {
+          return <li key={i} className="text-sm ml-4 list-disc">{line.slice(2)}</li>
+        }
+        if (line.match(/^\d+\.\s/)) {
+          return <li key={i} className="text-sm ml-4 list-decimal">{line.replace(/^\d+\.\s/, "")}</li>
+        }
+        if (!line.trim()) return <div key={i} className="h-2" />
+        return <p key={i} className="text-sm leading-relaxed whitespace-pre-wrap">{line}</p>
+      })
   }
 
   return (
@@ -130,7 +189,6 @@ export default function AssistantPage() {
       transition={{ duration: 0.3 }}
       className="h-[calc(100vh-8rem)] flex flex-col"
     >
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-[#F96801]/30">
@@ -138,7 +196,7 @@ export default function AssistantPage() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[#EFF2F2]">AI স্বাস্থ্য সহায়ক</h2>
-            <p className="text-sm text-[#A5ABB0]">আপনার ব্যক্তিগত AI মেডিকেল অ্যাসিস্ট্যান্ট</p>
+            <p className="text-sm text-[#A5ABB0]">Gemini AI · বাংলা/English/Banglish</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -147,25 +205,28 @@ export default function AssistantPage() {
             Gemini AI
           </Badge>
           {messages.length > 0 && (
-            <Button variant="ghost" size="icon" onClick={clearChat} className="rounded-full text-[#A5ABB0] hover:text-[#DE1B2D] hover:bg-white/[.06]">
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            <>
+              <Button variant="ghost" size="icon" onClick={retryLast} className="rounded-full text-[#A5ABB0] hover:text-[#25C2C3] hover:bg-white/[.06]" title="পুনরায় চেষ্টা">
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={clearChat} className="rounded-full text-[#A5ABB0] hover:text-[#DE1B2D] hover:bg-white/[.06]" title="চ্যাট ক্লিয়ার">
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </>
           )}
         </div>
       </div>
 
-      {/* Chat Area */}
       <Card className="flex-1 flex flex-col border border-white/[.08] bg-[#0a0d16] backdrop-blur-xl overflow-hidden">
         <ScrollArea ref={scrollRef} className="flex-1 p-4 md:p-6">
-          {messages.length === 0 ? (
+          {messages.length === 0 && !streamingText ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
               <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center mb-6 shadow-xl shadow-[#F96801]/30">
                 <Bot className="w-10 h-10 text-[#160500]" />
               </div>
               <h3 className="text-xl font-bold text-[#EFF2F2] mb-2">আমি Medify AI</h3>
               <p className="text-[#A5ABB0] max-w-md mb-8">
-                আমি আপনার ব্যক্তিগত স্বাস্থ্যসেবা সহায়ক। ওষুধ, রোগ, ডায়েট, লাইফস্টাইল — সব বিষয়ে 
-                বাংলা, ইংরেজি বা বাংলিশ (Banglish) এ জিজ্ঞাসা করুন, আমি উত্তর দেব।
+                বাংলা, ইংরেজি বা বাংলিশ (Banglish) এ আপনার স্বাস্থ্য নিয়ে প্রশ্ন করুন।
               </p>
               <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
                 {suggestions.map((s, i) => (
@@ -175,14 +236,14 @@ export default function AssistantPage() {
                     className="flex items-start gap-3 p-4 rounded-2xl bg-white/[.04] border border-white/[.08] hover:border-[#F96801]/30 transition-all text-left"
                   >
                     <div className="w-8 h-8 rounded-lg bg-[#F96801]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Bot className="w-4 h-4 text-[#F96801]" />
+                      <Sparkles className="w-4 h-4 text-[#F96801]" />
                     </div>
-                    <p className="text-sm text-[#EFF2F2]">{s.text}</p>
+                    <p className="text-sm text-[#EFF2F2] text-left">{s.text}</p>
                   </button>
                 ))}
               </div>
               <p className="mt-8 text-xs text-[#A5ABB0]/60 max-w-md">
-                * এই তথ্য শিক্ষামূলক এবং লাইসেন্সপ্রাপ্ত ডাক্তারের পরামর্শের বিকল্প নয়।
+                * শিক্ষামূলক তথ্য, ডাক্তারের বিকল্প নয়
               </p>
             </div>
           ) : (
@@ -192,21 +253,30 @@ export default function AssistantPage() {
                   key={msg.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex gap-3 group ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {msg.role === "assistant" && (
                     <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 mt-1">
                       <Bot className="w-4 h-4 text-[#160500]" />
                     </div>
                   )}
-                  <div
-                    className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 ${
+                  <div className="relative max-w-[85%] md:max-w-[70%]">
+                    <div className={`rounded-2xl px-4 py-3 ${
                       msg.role === "user"
                         ? "bg-gradient-to-br from-[#F96801] to-[#FF8A1E] text-[#160500] rounded-tr-sm"
                         : "bg-white/[.06] border border-white/[.08] text-[#EFF2F2] rounded-tl-sm"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    }`}>
+                      {renderContent(msg.content)}
+                    </div>
+                    {msg.role === "assistant" && (
+                      <button
+                        onClick={() => copyMessage(msg.content)}
+                        className="absolute -bottom-5 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-[#A5ABB0] hover:text-[#EFF2F2]"
+                        title="কপি"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                   {msg.role === "user" && (
                     <div className="w-8 h-8 rounded-xl bg-[#F96801]/20 flex items-center justify-center flex-shrink-0 mt-1">
@@ -215,7 +285,24 @@ export default function AssistantPage() {
                   )}
                 </motion.div>
               ))}
-              {loading && (
+
+              {streamingText && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex gap-3"
+                >
+                  <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 mt-1">
+                    <Bot className="w-4 h-4 text-[#160500]" />
+                  </div>
+                  <div className="bg-white/[.06] border border-white/[.08] rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] md:max-w-[70%]">
+                    <p className="text-sm text-[#EFF2F2] whitespace-pre-wrap">{streamingText}</p>
+                    <span className="inline-block w-2 h-4 bg-[#F96801] animate-pulse ml-0.5" />
+                  </div>
+                </motion.div>
+              )}
+
+              {loading && !streamingText && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -236,7 +323,6 @@ export default function AssistantPage() {
           )}
         </ScrollArea>
 
-        {/* Input Area */}
         <div className="border-t border-white/[.08] p-4 bg-[#0a0d16]">
           <div className="flex items-end gap-2">
             <div className="flex-1 relative">
@@ -269,7 +355,7 @@ export default function AssistantPage() {
               disabled={!input.trim() || loading}
               className="rounded-full w-11 h-11 flex-shrink-0 gradient-primary text-[#160500] shadow-lg shadow-[#F96801]/20 disabled:opacity-50 disabled:cursor-not-allowed btn-shine"
             >
-              <Send className="w-5 h-5" />
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </Button>
           </div>
           <p className="text-[10px] text-[#A5ABB0]/60 mt-2 text-center">
