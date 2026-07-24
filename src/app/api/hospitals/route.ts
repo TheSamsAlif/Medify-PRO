@@ -6,13 +6,13 @@ function buildQuery(lat: number, lng: number, type: string): string {
   let filters = ""
 
   if (type === "pharmacy") {
-    filters = `node['amenity'='pharmacy']${around};`
+    filters = `node(around:5000,${lat},${lng})["amenity"="pharmacy"];`
   } else if (type === "diagnostic") {
-    filters = `node['healthcare']='doctor'${around};`
+    filters = `node(around:5000,${lat},${lng})["healthcare"="doctor"];`
   } else if (type === "hospital") {
-    filters = `node['amenity'='hospital']${around};way['amenity'='hospital']${around};node['amenity'='clinic']${around};`
+    filters = `node(around:5000,${lat},${lng})["amenity"="hospital"];way(around:5000,${lat},${lng})["amenity"="hospital"];node(around:5000,${lat},${lng})["amenity"="clinic"];`
   } else {
-    filters = `node['amenity'='hospital']${around};node['amenity'='clinic']${around};node['amenity'='pharmacy']${around};node['healthcare']='doctor'${around};way['amenity'='hospital']${around};`
+    filters = `node(around:5000,${lat},${lng})["amenity"="hospital"];node(around:5000,${lat},${lng})["amenity"="clinic"];node(around:5000,${lat},${lng})["amenity"="pharmacy"];node(around:5000,${lat},${lng})["healthcare"="doctor"];way(around:5000,${lat},${lng})["amenity"="hospital"];`
   }
 
   return `[out:json][timeout:8];(${filters});out center 20;`
