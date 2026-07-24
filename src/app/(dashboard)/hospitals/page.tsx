@@ -1,39 +1,25 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { GoogleMap, MarkerF, InfoWindowF, LoadScript, DirectionsService, DirectionsRenderer, Autocomplete } from "@react-google-maps/api"
-import { MapPin, Phone, Navigation, Star, Building, Search, FlaskRoundIcon as Flask, Droplets, Clock, Ambulance, Crosshair, GripVertical } from "lucide-react"
+import dynamic from "next/dynamic"
+import { MapPin, Phone, Navigation, Star, Building, Search, FlaskRoundIcon as Flask, Droplets, Clock, Crosshair, Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
+import L from "leaflet"
 import type { Hospital } from "@/types"
 
-const containerStyle = { width: "100%", height: "100%" }
-const defaultCenter = { lat: 23.8103, lng: 90.4125 }
-const libraries: ("places" | "geometry")[] = ["places", "geometry"]
+const MapContainer = dynamic(() => import("react-leaflet").then(m => m.MapContainer), { ssr: false })
+const TileLayer = dynamic(() => import("react-leaflet").then(m => m.TileLayer), { ssr: false })
+const Marker = dynamic(() => import("react-leaflet").then(m => m.Marker), { ssr: false })
+const Popup = dynamic(() => import("react-leaflet").then(m => m.Popup), { ssr: false })
 
-const mapOptions = {
-  disableDefaultUI: false,
-  zoomControl: true,
-  mapTypeControl: false,
-  streetViewControl: false,
-  fullscreenControl: true,
-  styles: [
-    { elementType: "geometry", stylers: [{ color: "#0a0d16" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#0a0d16" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#A5ABB0" }] },
-    { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#1a1f2e" }] },
-    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#EFF2F2" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#040406" }] },
-    { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#2B3856" }] },
-    { featureType: "transit", stylers: [{ visibility: "off" }] },
-  ],
-}
+import "leaflet/dist/leaflet.css"
+
+const defaultCenter: [number, number] = [23.8103, 90.4125]
 
 const typeColors: Record<string, string> = {
   hospital: "#F96801",
@@ -42,19 +28,37 @@ const typeColors: Record<string, string> = {
   blood_bank: "#f87171",
 }
 
+function createIcon(type: string) {
+  const color = typeColors[type] || "#F96801"
+  return L.divIcon({
+    className: "custom-marker",
+    html: `<div style="width:32px;height:32px;background:${color};border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -20],
+  })
+}
+
+const userIcon = L.divIcon({
+  className: "custom-marker",
+  html: `<div style="width:20px;height:20px;background:#25C2C3;border:3px solid #fff;border-radius:50%;box-shadow:0 0 12px rgba(37,194,195,.6)"></div>`,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+})
+
 export default function HospitalsPage() {
   const [hospitals, setHospitals] = useState<Hospital[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("all")
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [selected, setSelected] = useState<Hospital | null>(null)
-  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null)
   const [eta, setEta] = useState<string | null>(null)
-  const [map, setMap] = useState<google.maps.Map | null>(null)
   const [tracking, setTracking] = useState(false)
+  const [routeGeo, setRouteGeo] = useState<[number, number][] | null>(null)
+  const [routeDist, setRouteDist] = useState<string | null>(null)
   const watchId = useRef<number | null>(null)
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+  const mapRef = useRef<L.Map | null>(null)
 
   useEffect(() => {
     getUserLocation()
@@ -67,9 +71,9 @@ export default function HospitalsPage() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+          const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude]
           setUserLocation(loc)
-          fetchHospitals(loc.lat, loc.lng)
+          fetchHospitals(loc[0], loc[1])
         },
         () => fetchHospitals(),
         { enableHighAccuracy: true, timeout: 10000 }
@@ -91,10 +95,10 @@ export default function HospitalsPage() {
       }
       watchId.current = navigator.geolocation.watchPosition(
         (pos) => {
-          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+          const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude]
           setUserLocation(loc)
-          fetchHospitals(loc.lat, loc.lng)
-          map?.panTo(loc)
+          fetchHospitals(loc[0], loc[1])
+          mapRef.current?.panTo(loc)
         },
         () => toast.error("GPS অবস্থান পাওয়া যায়নি"),
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
@@ -123,87 +127,83 @@ export default function HospitalsPage() {
   }
 
   useEffect(() => {
-    fetchHospitals(userLocation?.lat, userLocation?.lng)
+    fetchHospitals(userLocation?.[0], userLocation?.[1])
   }, [filter])
 
-  const onSelect = useCallback((hospital: Hospital) => {
+  const onSelect = useCallback(async (hospital: Hospital) => {
     setSelected(hospital)
-    setDirections(null)
+    setRouteGeo(null)
+    setRouteDist(null)
     setEta(null)
     if (userLocation) {
-      const service = new google.maps.DistanceMatrixService()
-      service.getDistanceMatrix(
-        {
-          origins: [new google.maps.LatLng(userLocation.lat, userLocation.lng)],
-          destinations: [new google.maps.LatLng(hospital.latitude, hospital.longitude)],
-          travelMode: google.maps.TravelMode.DRIVING,
-          unitSystem: google.maps.UnitSystem.METRIC,
-        },
-        (result, status) => {
-          if (status === "OK" && result?.rows[0]?.elements[0]?.status === "OK") {
-            setEta(result.rows[0].elements[0].duration.text)
-          }
+      try {
+        const res = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${userLocation[1]},${userLocation[0]};${hospital.longitude},${hospital.latitude}?overview=full&geometries=geojson`
+        )
+        const data = await res.json()
+        if (data.code === "Ok" && data.routes?.[0]) {
+          const route = data.routes[0]
+          const coords = route.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]] as [number, number])
+          setRouteGeo(coords)
+          const distKm = (route.distance / 1000).toFixed(1)
+          const mins = Math.round(route.duration / 60)
+          setRouteDist(`${distKm} কিমি`)
+          setEta(`${mins} মিনিট`)
         }
-      )
+      } catch {
+        setRouteGeo(null)
+      }
     }
   }, [userLocation])
 
   const getDirections = () => {
     if (!userLocation || !selected) return
-    setDirections(null)
-    const request: google.maps.DirectionsRequest = {
-      origin: new google.maps.LatLng(userLocation.lat, userLocation.lng),
-      destination: new google.maps.LatLng(selected.latitude, selected.longitude),
-      travelMode: google.maps.TravelMode.DRIVING,
-    }
-    const ds = new google.maps.DirectionsService()
-    ds.route(request, (result, status) => {
-      if (status === "OK") setDirections(result)
-      else toast.error("রুট পাওয়া যায়নি")
-    })
+    const url = `https://www.openstreetmap.org/directions?engine=car&route=${userLocation[0]},${userLocation[1]};${selected.latitude},${selected.longitude}`
+    window.open(url, "_blank")
   }
 
-  const onPlaceChanged = () => {
-    const place = autocompleteRef.current?.getPlace()
-    if (place?.geometry?.location) {
-      const loc = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() }
-      setUserLocation(loc)
-      map?.panTo(loc)
-      map?.setZoom(14)
-      fetchHospitals(loc.lat, loc.lng)
+  const searchPlace = async (q: string) => {
+    if (!q.trim()) return
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`)
+      const data = await res.json()
+      if (data?.[0]) {
+        const loc: [number, number] = [parseFloat(data[0].lat), parseFloat(data[0].lon)]
+        setUserLocation(loc)
+        mapRef.current?.panTo(loc)
+        mapRef.current?.setZoom(14)
+        fetchHospitals(loc[0], loc[1])
+      }
+    } catch {
+      toast.error("ঠিকানা পাওয়া যায়নি")
     }
   }
 
   const filtered = hospitals.filter(h =>
     h.name.toLowerCase().includes(search.toLowerCase()) ||
-    h.address.toLowerCase().includes(search.toLowerCase()) ||
-    h.specialties?.some(s => s.toLowerCase().includes(search.toLowerCase()))
+    h.address.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
-    <LoadScript
-      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
-      libraries={libraries}
-    >
+    <>
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
       <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4">
         <div className="lg:w-[420px] xl:w-[480px] flex flex-col gap-4 overflow-hidden">
           <div>
             <h2 className="text-xl font-bold text-[#EFF2F2]">নিকটস্থ হাসপাতাল</h2>
-            <p className="text-sm text-[#A5ABB0] mt-0.5">Google Maps-এ রিয়েল-টাইম লোকেশন ও ETA</p>
+            <p className="text-sm text-[#A5ABB0] mt-0.5">OpenStreetMap-এ রিয়েল-টাইম লোকেশন ও ETA</p>
           </div>
 
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A5ABB0] z-10" />
-              <Autocomplete
-                onLoad={(ref) => { autocompleteRef.current = ref }}
-                onPlaceChanged={onPlaceChanged}
-              >
-                <Input
-                  placeholder="ঠিকানা সার্চ করুন..."
-                  className="pl-9 h-10 text-sm bg-white/[.04] border border-white/[.08] text-[#EFF2F2] placeholder:text-[#A5ABB0] rounded-xl"
-                />
-              </Autocomplete>
+              <Input
+                placeholder="ঠিকানা সার্চ করুন..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") searchPlace(search) }}
+                className="pl-9 h-10 text-sm bg-white/[.04] border border-white/[.08] text-[#EFF2F2] placeholder:text-[#A5ABB0] rounded-xl"
+              />
             </div>
             <Button
               onClick={toggleTracking}
@@ -276,7 +276,6 @@ export default function HospitalsPage() {
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {h.emergency && <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#DE1B2D]/20 text-[#f87171]">জরুরি</span>}
                         {h.ambulance && <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#25C2C3]/20 text-[#25C2C3]">আম্বুলেন্স</span>}
-                        {h.bloodBank && <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#DE1B2D]/20 text-[#f87171]">ব্লাড ব্যাংক</span>}
                       </div>
                     </div>
                   </div>
@@ -287,97 +286,83 @@ export default function HospitalsPage() {
         </div>
 
         <div className="flex-1 rounded-2xl overflow-hidden glass-border-gradient min-h-[400px] relative">
-          <GoogleMap
-            mapContainerStyle={{ width: "100%", height: "100%" }}
+          <MapContainer
             center={userLocation || defaultCenter}
             zoom={13}
-            options={mapOptions}
-            onLoad={(m) => setMap(m)}
+            className="h-full w-full"
+            ref={mapRef}
+            style={{ background: "#040406" }}
           >
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+            />
+
             {userLocation && (
-              <MarkerF
-                position={userLocation}
-                icon={{
-                  path: google.maps.SymbolPath.CIRCLE,
-                  scale: 10,
-                  fillColor: "#25C2C3",
-                  fillOpacity: 1,
-                  strokeColor: "#FFFFFF",
-                  strokeWeight: 3,
-                }}
-                title="আপনার অবস্থান"
-              />
+              <Marker position={userLocation} icon={userIcon}>
+                <Popup>
+                  <div className="text-sm font-medium">আপনার অবস্থান</div>
+                </Popup>
+              </Marker>
             )}
 
             {filtered.map((h) => (
-              <MarkerF
+              <Marker
                 key={h.id}
-                position={{ lat: h.latitude, lng: h.longitude }}
-                onClick={() => onSelect(h)}
-                icon={{
-                  url: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="${typeColors[h.type]}" stroke="#FFFFFF" stroke-width="3"/></svg>`)}`,
-                  scaledSize: new google.maps.Size(36, 36),
-                  anchor: new google.maps.Point(18, 18),
-                }}
-              />
-            ))}
-
-            {selected && (
-              <InfoWindowF
-                position={{ lat: selected.latitude, lng: selected.longitude }}
-                onCloseClick={() => { setSelected(null); setDirections(null); setEta(null) }}
+                position={[h.latitude, h.longitude]}
+                icon={createIcon(h.type)}
+                eventHandlers={{ click: () => onSelect(h) }}
               >
-                <div style={{
-                  background: "#0a0d16",
-                  color: "#EFF2F2",
-                  padding: "12px",
-                  borderRadius: "12px",
-                  maxWidth: "240px",
-                  fontFamily: "system-ui, sans-serif"
-                }}>
-                  <h3 style={{ fontWeight: 600, fontSize: "14px", margin: "0 0 4px" }}>{selected.name}</h3>
-                  <p style={{ fontSize: "12px", color: "#A5ABB0", margin: "0 0 8px" }}>{selected.address}</p>
-                  {eta && (
-                    <p style={{ fontSize: "12px", color: "#25C2C3", margin: "0 0 8px" }}>
-                      🚗 ETA: {eta}
-                    </p>
-                  )}
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    {selected.phone && (
-                      <a href={`tel:${selected.phone}`} style={{
-                        fontSize: "11px", padding: "4px 10px", borderRadius: "999px",
-                        background: "rgba(249,104,1,.2)", color: "#F96801", textDecoration: "none"
-                      }}>
-                        📞 Call
-                      </a>
-                    )}
-                    <button onClick={getDirections} style={{
-                      fontSize: "11px", padding: "4px 10px", borderRadius: "999px",
-                      background: "rgba(37,194,195,.2)", color: "#25C2C3", border: "none", cursor: "pointer"
-                    }}>
-                      🗺️ Route
-                    </button>
-                  </div>
-                </div>
-              </InfoWindowF>
-            )}
+                {selected?.id === h.id && (
+                  <Popup>
+                    <div style={{ minWidth: 200, fontFamily: "system-ui,sans-serif" }}>
+                      <h3 style={{ fontWeight: 600, fontSize: 14, margin: "0 0 4px", color: "#EFF2F2" }}>{h.name}</h3>
+                      <p style={{ fontSize: 12, color: "#A5ABB0", margin: "0 0 8px" }}>{h.address}</p>
+                      {eta && routeDist && (
+                        <p style={{ fontSize: 12, color: "#25C2C3", margin: "0 0 8px" }}>
+                          🚗 {routeDist} · ETA: {eta}
+                        </p>
+                      )}
+                      <div style={{ display: "flex", gap: 6 }}>
+                        {h.phone && (
+                          <a href={`tel:${h.phone}`} style={{
+                            fontSize: 11, padding: "4px 10px", borderRadius: 999,
+                            background: "rgba(249,104,1,.2)", color: "#F96801", textDecoration: "none"
+                          }}>
+                            📞 Call
+                          </a>
+                        )}
+                        <button onClick={getDirections} style={{
+                          fontSize: 11, padding: "4px 10px", borderRadius: 999,
+                          background: "rgba(37,194,195,.2)", color: "#25C2C3", border: "none", cursor: "pointer"
+                        }}>
+                          🗺️ Route
+                        </button>
+                      </div>
+                    </div>
+                  </Popup>
+                )}
+              </Marker>
+            ))}
+          </MapContainer>
 
-            {directions && (
-              <DirectionsRenderer
-                directions={directions}
-                options={{
-                  polylineOptions: {
-                    strokeColor: "#F96801",
-                    strokeWeight: 4,
-                    strokeOpacity: 0.8,
-                  },
-                  suppressMarkers: true,
-                }}
-              />
-            )}
-          </GoogleMap>
+          {routeGeo && (
+            <div className="absolute bottom-4 left-4 right-4 z-[999]">
+              <Card className="bg-[#0a0d16]/90 backdrop-blur-xl border border-[#25C2C3]/30">
+                <CardContent className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-sm">
+                    <Navigation className="w-4 h-4 text-[#25C2C3]" />
+                    <span className="text-[#EFF2F2]">{routeDist} · ETA: {eta}</span>
+                  </div>
+                  <Button size="sm" onClick={getDirections} className="gradient-primary text-[#160500] text-xs h-8">
+                    ওপেন স্ট্রিট ম্যাপে খুলুন
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
-    </LoadScript>
+    </>
   )
 }

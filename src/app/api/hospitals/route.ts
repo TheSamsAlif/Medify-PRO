@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server"
 
-const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
-
-const TYPES_MAP: Record<string, string[]> = {
-  all: ["hospital", "doctor", "pharmacy", "health"],
-  hospital: ["hospital"],
-  diagnostic: ["doctor"],
-  pharmacy: ["pharmacy"],
+const TYPES: Record<string, string[]> = {
+  all: ['"amenity"="hospital"', '"amenity"="clinic"', '"amenity"="pharmacy"', '"healthcare"="doctor"'],
+  hospital: ['"amenity"="hospital"', '"amenity"="clinic"'],
+  diagnostic: ['"healthcare"="doctor"'],
+  pharmacy: ['"amenity"="pharmacy"'],
 }
 
 const TYPE_LABEL: Record<string, string> = {
   hospital: "hospital",
-  doctor: "diagnostic",
+  clinic: "hospital",
   pharmacy: "pharmacy",
+  doctor: "diagnostic",
 }
 
 export async function GET(req: Request) {
@@ -26,50 +25,55 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "lat and lng required" }, { status: 400 })
     }
 
-    const types = TYPES_MAP[type] || TYPES_MAP.all
-    const allResults: Record<string, unknown>[] = []
-    const seenIds = new Set<string>()
+    const filters = TYPES[type] || TYPES.all
+    const query = `
+      [out:json][timeout:10];
+      (
+        ${filters.map(f => `node${f}(around:5000,${lat},${lng});`).join("\n")}
+        ${filters.map(f => `way${f}(around:5000,${lat},${lng});`).join("\n")}
+      );
+      out center 20;
+    `
 
-    for (const placeType of types) {
-      const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=${placeType}&key=${GOOGLE_API_KEY}`
-      const res = await fetch(url)
-      const data = await res.json()
-      if (data.results) {
-        for (const place of data.results) {
-          if (!seenIds.has(place.place_id)) {
-            seenIds.add(place.place_id)
-            allResults.push(place)
-          }
-        }
-      }
-    }
-
-    const hospitals = allResults.slice(0, 50).map((place: Record<string, unknown>) => {
-      const lat2 = (place.geometry as Record<string, Record<string, number>>).location.lat
-      const lng2 = (place.geometry as Record<string, Record<string, number>>).location.lng
-      const distance = calcDistance(lat, lng, lat2, lng2)
-      const typesArr = place.types as string[]
-      return {
-        id: place.place_id as string,
-        name: place.name as string,
-        address: place.vicinity as string,
-        latitude: lat2,
-        longitude: lng2,
-        rating: place.rating as number || null,
-        type: getTypeLabel(typesArr),
-        phone: null,
-        emergency: typesArr.includes("hospital"),
-        ambulance: typesArr.includes("hospital"),
-        bloodBank: typesArr.includes("hospital"),
-        specialties: typesArr.slice(0, 3),
-        distance,
-        photoRef: (place.photos as Record<string, unknown>[])?.[0]?.photo_reference as string || null,
-        openNow: (place.opening_hours as Record<string, unknown>)?.open_now as boolean ?? null,
-        placeId: place.place_id as string,
-      }
+    const res = await fetch("https://overpass-api.de/api/interpreter", {
+      method: "POST",
+      body: `data=${encodeURIComponent(query)}`,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
     })
 
-    hospitals.sort((a, b) => (a.distance || 0) - (b.distance || 0))
+    if (!res.ok) {
+      return NextResponse.json({ error: "Overpass API error" }, { status: 502 })
+    }
+
+    const data = await res.json()
+
+    const hospitals = (data.elements || [])
+      .filter((el: Record<string, unknown>) => el.tags)
+      .map((el: Record<string, unknown>) => {
+        const tags = el.tags as Record<string, string>
+        const lat2 = el.type === "way" ? (el.center as Record<string, number>)?.lat || lat : el.lat as number
+        const lng2 = el.type === "way" ? (el.center as Record<string, number>)?.lon || lng : el.lon as number
+        const osmType = tags.amenity || tags.healthcare || "hospital"
+        return {
+          id: `${el.type}-${el.id}`,
+          name: tags.name || `${tags["name:bn"] || ""}` || getTypeName(osmType),
+          type: TYPE_LABEL[osmType] || "hospital",
+          address: tags["addr:full"] || tags["addr:street"] || `${tags["addr:city"] || ""} ${tags["addr:district"] || ""}`.trim() || "ঠিকানা দেওয়া নেই",
+          latitude: lat2,
+          longitude: lng2,
+          phone: tags.phone || tags["contact:phone"] || null,
+          rating: null,
+          emergency: osmType === "hospital",
+          ambulance: tags.ambulance === "yes" || osmType === "hospital",
+          bloodBank: osmType === "hospital",
+          specialties: [osmType],
+          distance: calcDistance(lat, lng, lat2, lng2),
+          openNow: null,
+          placeId: `${el.type}-${el.id}`,
+        }
+      })
+      .sort((a: Record<string, unknown>, b: Record<string, unknown>) => (a.distance as number) - (b.distance as number))
+      .slice(0, 50)
 
     return NextResponse.json(hospitals)
   } catch (error) {
@@ -78,11 +82,14 @@ export async function GET(req: Request) {
   }
 }
 
-function getTypeLabel(types: string[]): string {
-  if (types.includes("hospital")) return "hospital"
-  if (types.includes("doctor")) return "diagnostic"
-  if (types.includes("pharmacy")) return "pharmacy"
-  return "hospital"
+function getTypeName(type: string): string {
+  const names: Record<string, string> = {
+    hospital: "হাসপাতাল",
+    clinic: "ক্লিনিক",
+    pharmacy: "ফার্মেসী",
+    doctor: "ডাক্তার",
+  }
+  return names[type] || "স্বাস্থ্য সেবা"
 }
 
 function calcDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
