@@ -6,13 +6,13 @@ function buildQuery(lat: number, lng: number, type: string): string {
   let filters = ""
 
   if (type === "pharmacy") {
-    filters = `node["amenity"="pharmacy"]${around};`
+    filters = `node['amenity'='pharmacy']${around};`
   } else if (type === "diagnostic") {
-    filters = `node["healthcare"="doctor"]${around};`
+    filters = `node['healthcare']='doctor'${around};`
   } else if (type === "hospital") {
-    filters = `node["amenity"="hospital"]${around};way["amenity"="hospital"]${around};node["amenity"="clinic"]${around};`
+    filters = `node['amenity'='hospital']${around};way['amenity'='hospital']${around};node['amenity'='clinic']${around};`
   } else {
-    filters = `node["amenity"="hospital"]${around};node["amenity"="clinic"]${around};node["amenity"="pharmacy"]${around};node["healthcare"="doctor"]${around};way["amenity"="hospital"]${around};`
+    filters = `node['amenity'='hospital']${around};node['amenity'='clinic']${around};node['amenity'='pharmacy']${around};node['healthcare']='doctor'${around};way['amenity'='hospital']${around};`
   }
 
   return `[out:json][timeout:8];(${filters});out center 20;`
