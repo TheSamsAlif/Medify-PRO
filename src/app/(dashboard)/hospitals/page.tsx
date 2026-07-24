@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { MapPin, Phone, Navigation, Star, Building, Search, Filter, Ambulance, FlaskRoundIcon as Flask, Droplets } from "lucide-react"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { GoogleMap, MarkerF, InfoWindowF, LoadScript, DirectionsService, DirectionsRenderer, Autocomplete } from "@react-google-maps/api"
+import { MapPin, Phone, Navigation, Star, Building, Search, FlaskRoundIcon as Flask, Droplets, Clock, Ambulance, Crosshair, GripVertical } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,23 +12,64 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import type { Hospital } from "@/types"
 
+const containerStyle = { width: "100%", height: "100%" }
+const defaultCenter = { lat: 23.8103, lng: 90.4125 }
+const libraries: ("places" | "geometry")[] = ["places", "geometry"]
+
+const mapOptions = {
+  disableDefaultUI: false,
+  zoomControl: true,
+  mapTypeControl: false,
+  streetViewControl: false,
+  fullscreenControl: true,
+  styles: [
+    { elementType: "geometry", stylers: [{ color: "#0a0d16" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#0a0d16" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#A5ABB0" }] },
+    { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#1a1f2e" }] },
+    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#EFF2F2" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#040406" }] },
+    { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#2B3856" }] },
+    { featureType: "transit", stylers: [{ visibility: "off" }] },
+  ],
+}
+
+const typeColors: Record<string, string> = {
+  hospital: "#F96801",
+  diagnostic: "#25C2C3",
+  pharmacy: "#DE1B2D",
+  blood_bank: "#f87171",
+}
+
 export default function HospitalsPage() {
   const [hospitals, setHospitals] = useState<Hospital[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("all")
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [selected, setSelected] = useState<Hospital | null>(null)
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null)
+  const [eta, setEta] = useState<string | null>(null)
+  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const [tracking, setTracking] = useState(false)
+  const watchId = useRef<number | null>(null)
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
 
   useEffect(() => {
     getUserLocation()
+    return () => {
+      if (watchId.current) navigator.geolocation.clearWatch(watchId.current)
+    }
   }, [])
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-          fetchHospitals(pos.coords.latitude, pos.coords.longitude)
+          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+          setUserLocation(loc)
+          fetchHospitals(loc.lat, loc.lng)
         },
         () => fetchHospitals(),
         { enableHighAccuracy: true, timeout: 10000 }
@@ -38,18 +79,42 @@ export default function HospitalsPage() {
     }
   }
 
+  const toggleTracking = () => {
+    if (tracking) {
+      if (watchId.current) navigator.geolocation.clearWatch(watchId.current)
+      setTracking(false)
+      toast.info("GPS ট্র্যাকিং বন্ধ করা হয়েছে")
+    } else {
+      if (!navigator.geolocation) {
+        toast.error("GPS সমর্থিত নয়")
+        return
+      }
+      watchId.current = navigator.geolocation.watchPosition(
+        (pos) => {
+          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+          setUserLocation(loc)
+          fetchHospitals(loc.lat, loc.lng)
+          map?.panTo(loc)
+        },
+        () => toast.error("GPS অবস্থান পাওয়া যায়নি"),
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      )
+      setTracking(true)
+      toast.success("GPS ট্র্যাকিং চালু হয়েছে")
+    }
+  }
+
   const fetchHospitals = async (lat?: number, lng?: number) => {
     try {
       const params = new URLSearchParams()
-      if (lat && lng) {
-        params.set("lat", lat.toString())
-        params.set("lng", lng.toString())
-      }
+      if (lat && lng) { params.set("lat", lat.toString()); params.set("lng", lng.toString()) }
       if (filter !== "all") params.set("type", filter)
       params.set("limit", "50")
-
       const res = await fetch(`/api/hospitals?${params}`)
-      if (res.ok) setHospitals(await res.json())
+      if (res.ok) {
+        const data = await res.json()
+        setHospitals(data)
+      }
     } catch {
       toast.error("হাসপাতালের ডাটা লোড করতে সমস্যা")
     } finally {
@@ -61,135 +126,258 @@ export default function HospitalsPage() {
     fetchHospitals(userLocation?.lat, userLocation?.lng)
   }, [filter])
 
-  const filtered = hospitals.filter(h =>
-    h.name.toLowerCase().includes(search.toLowerCase()) ||
-    h.address.toLowerCase().includes(search.toLowerCase()) ||
-    h.specialties.some(s => s.toLowerCase().includes(search.toLowerCase()))
-  )
+  const onSelect = useCallback((hospital: Hospital) => {
+    setSelected(hospital)
+    setDirections(null)
+    setEta(null)
+    if (userLocation) {
+      const service = new google.maps.DistanceMatrixService()
+      service.getDistanceMatrix(
+        {
+          origins: [new google.maps.LatLng(userLocation.lat, userLocation.lng)],
+          destinations: [new google.maps.LatLng(hospital.latitude, hospital.longitude)],
+          travelMode: google.maps.TravelMode.DRIVING,
+          unitSystem: google.maps.UnitSystem.METRIC,
+        },
+        (result, status) => {
+          if (status === "OK" && result?.rows[0]?.elements[0]?.status === "OK") {
+            setEta(result.rows[0].elements[0].duration.text)
+          }
+        }
+      )
+    }
+  }, [userLocation])
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "hospital": return Building
-      case "diagnostic": return Flask
-      case "pharmacy": return Droplets
-      case "blood_bank": return Droplets
-      default: return Building
+  const getDirections = () => {
+    if (!userLocation || !selected) return
+    setDirections(null)
+    const request: google.maps.DirectionsRequest = {
+      origin: new google.maps.LatLng(userLocation.lat, userLocation.lng),
+      destination: new google.maps.LatLng(selected.latitude, selected.longitude),
+      travelMode: google.maps.TravelMode.DRIVING,
+    }
+    const ds = new google.maps.DirectionsService()
+    ds.route(request, (result, status) => {
+      if (status === "OK") setDirections(result)
+      else toast.error("রুট পাওয়া যায়নি")
+    })
+  }
+
+  const onPlaceChanged = () => {
+    const place = autocompleteRef.current?.getPlace()
+    if (place?.geometry?.location) {
+      const loc = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() }
+      setUserLocation(loc)
+      map?.panTo(loc)
+      map?.setZoom(14)
+      fetchHospitals(loc.lat, loc.lng)
     }
   }
 
+  const filtered = hospitals.filter(h =>
+    h.name.toLowerCase().includes(search.toLowerCase()) ||
+    h.address.toLowerCase().includes(search.toLowerCase()) ||
+    h.specialties?.some(s => s.toLowerCase().includes(search.toLowerCase()))
+  )
+
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <div className="mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold">নিকটস্থ হাসপাতাল</h2>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">আপনার অবস্থানের নিকটে স্বাস্থ্য সেবা কেন্দ্র</p>
-      </div>
+    <LoadScript
+      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
+      libraries={libraries}
+    >
+      <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4">
+        <div className="lg:w-[420px] xl:w-[480px] flex flex-col gap-4 overflow-hidden">
+          <div>
+            <h2 className="text-xl font-bold text-[#EFF2F2]">নিকটস্থ হাসপাতাল</h2>
+            <p className="text-sm text-[#A5ABB0] mt-0.5">Google Maps-এ রিয়েল-টাইম লোকেশন ও ETA</p>
+          </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <Input
-            placeholder="হাসপাতালের নাম বা ঠিকানা সার্চ করুন..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-11 py-6 text-base rounded-xl"
-          />
-        </div>
-        {userLocation && (
-          <Badge variant="outline" className="px-4 py-3 text-sm gap-2">
-            <MapPin className="w-4 h-4 text-primary" />
-            অবস্থান সনাক্ত করা হয়েছে
-          </Badge>
-        )}
-      </div>
-
-      <Tabs value={filter} onValueChange={setFilter} className="mb-6">
-        <TabsList className="rounded-xl p-1">
-          <TabsTrigger value="all" className="rounded-lg text-sm">সব</TabsTrigger>
-          <TabsTrigger value="hospital" className="rounded-lg text-sm">হাসপাতাল</TabsTrigger>
-          <TabsTrigger value="diagnostic" className="rounded-lg text-sm">ডায়াগনস্টিক</TabsTrigger>
-          <TabsTrigger value="pharmacy" className="rounded-lg text-sm">ফার্মেসী</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      {loading ? (
-        <div className="grid md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-36 w-full rounded-2xl" />)}
-        </div>
-      ) : (
-        <div className="grid md:grid-cols-2 gap-4">
-          {filtered.map((hospital, i) => {
-            const Icon = getTypeIcon(hospital.type)
-            return (
-              <motion.div
-                key={hospital.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.03 }}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A5ABB0] z-10" />
+              <Autocomplete
+                onLoad={(ref) => { autocompleteRef.current = ref }}
+                onPlaceChanged={onPlaceChanged}
               >
-                <Card className="border-0 shadow-lg shadow-black/5 hover:shadow-xl transition-all group">
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        <Icon className="w-6 h-6 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h3 className="font-semibold text-base truncate">{hospital.name}</h3>
-                            <p className="text-sm text-gray-500 mt-0.5">{hospital.address}</p>
+                <Input
+                  placeholder="ঠিকানা সার্চ করুন..."
+                  className="pl-9 h-10 text-sm bg-white/[.04] border border-white/[.08] text-[#EFF2F2] placeholder:text-[#A5ABB0] rounded-xl"
+                />
+              </Autocomplete>
+            </div>
+            <Button
+              onClick={toggleTracking}
+              className={`h-10 w-10 p-0 rounded-xl ${tracking ? "bg-[#F96801] text-[#160500]" : "glass text-[#A5ABB0]"}`}
+            >
+              <Crosshair className={`w-4 h-4 ${tracking ? "animate-pulse" : ""}`} />
+            </Button>
+          </div>
+
+          <Tabs value={filter} onValueChange={setFilter}>
+            <TabsList className="rounded-xl p-1 bg-white/[.04] border border-white/[.08]">
+              <TabsTrigger value="all" className="rounded-lg text-xs data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500]">সব</TabsTrigger>
+              <TabsTrigger value="hospital" className="rounded-lg text-xs data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500]">হাসপাতাল</TabsTrigger>
+              <TabsTrigger value="diagnostic" className="rounded-lg text-xs data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500]">ডায়াগনস্টিক</TabsTrigger>
+              <TabsTrigger value="pharmacy" className="rounded-lg text-xs data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500]">ফার্মেসী</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+            {loading ? (
+              [1,2,3,4].map(i => <Skeleton key={i} className="h-28 w-full rounded-2xl bg-white/[.04]" />)
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-12">
+                <MapPin className="w-12 h-12 text-[#2B3856] mx-auto mb-3" />
+                <p className="text-[#A5ABB0] text-sm">কোনো হাসপাতাল পাওয়া যায়নি</p>
+              </div>
+            ) : filtered.map((h, i) => {
+              const Icon = h.type === "hospital" ? Building : h.type === "diagnostic" ? Flask : Droplets
+              const isSelected = selected?.id === h.id
+              return (
+                <div
+                  key={h.id}
+                  onClick={() => onSelect(h)}
+                  className={`glass rounded-2xl p-4 cursor-pointer transition-all duration-200 ${
+                    isSelected ? "border-[#F96801]/50 shadow-lg shadow-[#F96801]/5" : ""
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: `${typeColors[h.type]}20`, color: typeColors[h.type] }}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-sm font-semibold text-[#EFF2F2] truncate">{h.name}</h3>
+                        {h.rating && (
+                          <div className="flex items-center gap-1 text-[#FBBF24] text-xs flex-shrink-0">
+                            <Star className="w-3 h-3 fill-current" />
+                            {h.rating}
                           </div>
-                          {hospital.rating && (
-                            <div className="flex items-center gap-1 text-amber-500 text-sm flex-shrink-0">
-                              <Star className="w-4 h-4 fill-current" />
-                              {hospital.rating}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {hospital.emergency && <Badge variant="secondary" className="text-xs bg-red-100 dark:bg-red-900/30 text-red-600">জরুরি</Badge>}
-                          {hospital.ambulance && <Badge variant="secondary" className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600">আম্বুলেন্স</Badge>}
-                          {hospital.bloodBank && <Badge variant="secondary" className="text-xs bg-red-100 dark:bg-red-900/30 text-red-600">ব্লাড ব্যাংক</Badge>}
-                          {hospital.diagnostic && <Badge variant="secondary" className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600">ডায়াগনস্টিক</Badge>}
-                        </div>
-
-                        {hospital.distance !== undefined && (
-                          <p className="text-xs text-gray-400 mt-2">
-                            দূরত্ব: {hospital.distance.toFixed(1)} কিমি
-                          </p>
                         )}
-
-                        <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {hospital.phone && (
-                            <a href={`tel:${hospital.phone}`}>
-                              <Button variant="outline" size="sm" className="rounded-full text-xs h-8">
-                                <Phone className="w-3 h-3 mr-1" /> কল
-                              </Button>
-                            </a>
-                          )}
-                          {userLocation && (
-                            <a href={`https://www.google.com/maps/dir/${userLocation.lat},${userLocation.lng}/${hospital.latitude},${hospital.longitude}`} target="_blank" rel="noopener noreferrer">
-                              <Button variant="outline" size="sm" className="rounded-full text-xs h-8">
-                                <Navigation className="w-3 h-3 mr-1" /> দিকনির্দেশ
-                              </Button>
-                            </a>
-                          )}
-                        </div>
+                      </div>
+                      <p className="text-xs text-[#A5ABB0] mt-0.5 line-clamp-1">{h.address}</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        {h.distance !== undefined && (
+                          <span className="text-xs text-[#A5ABB0] flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {h.distance.toFixed(1)} কিমি
+                          </span>
+                        )}
+                        {isSelected && eta && (
+                          <span className="text-xs text-[#25C2C3] flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {eta}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {h.emergency && <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#DE1B2D]/20 text-[#f87171]">জরুরি</span>}
+                        {h.ambulance && <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#25C2C3]/20 text-[#25C2C3]">আম্বুলেন্স</span>}
+                        {h.bloodBank && <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#DE1B2D]/20 text-[#f87171]">ব্লাড ব্যাংক</span>}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )
-          })}
-          {filtered.length === 0 && (
-            <div className="col-span-2 text-center py-16">
-              <MapPin className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500">কোনো হাসপাতাল পাওয়া যায়নি</p>
-            </div>
-          )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
-      )}
-    </motion.div>
+
+        <div className="flex-1 rounded-2xl overflow-hidden glass-border-gradient min-h-[400px] relative">
+          <GoogleMap
+            mapContainerStyle={{ width: "100%", height: "100%" }}
+            center={userLocation || defaultCenter}
+            zoom={13}
+            options={mapOptions}
+            onLoad={(m) => setMap(m)}
+          >
+            {userLocation && (
+              <MarkerF
+                position={userLocation}
+                icon={{
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 10,
+                  fillColor: "#25C2C3",
+                  fillOpacity: 1,
+                  strokeColor: "#FFFFFF",
+                  strokeWeight: 3,
+                }}
+                title="আপনার অবস্থান"
+              />
+            )}
+
+            {filtered.map((h) => (
+              <MarkerF
+                key={h.id}
+                position={{ lat: h.latitude, lng: h.longitude }}
+                onClick={() => onSelect(h)}
+                icon={{
+                  url: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="${typeColors[h.type]}" stroke="#FFFFFF" stroke-width="3"/></svg>`)}`,
+                  scaledSize: new google.maps.Size(36, 36),
+                  anchor: new google.maps.Point(18, 18),
+                }}
+              />
+            ))}
+
+            {selected && (
+              <InfoWindowF
+                position={{ lat: selected.latitude, lng: selected.longitude }}
+                onCloseClick={() => { setSelected(null); setDirections(null); setEta(null) }}
+              >
+                <div style={{
+                  background: "#0a0d16",
+                  color: "#EFF2F2",
+                  padding: "12px",
+                  borderRadius: "12px",
+                  maxWidth: "240px",
+                  fontFamily: "system-ui, sans-serif"
+                }}>
+                  <h3 style={{ fontWeight: 600, fontSize: "14px", margin: "0 0 4px" }}>{selected.name}</h3>
+                  <p style={{ fontSize: "12px", color: "#A5ABB0", margin: "0 0 8px" }}>{selected.address}</p>
+                  {eta && (
+                    <p style={{ fontSize: "12px", color: "#25C2C3", margin: "0 0 8px" }}>
+                      🚗 ETA: {eta}
+                    </p>
+                  )}
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    {selected.phone && (
+                      <a href={`tel:${selected.phone}`} style={{
+                        fontSize: "11px", padding: "4px 10px", borderRadius: "999px",
+                        background: "rgba(249,104,1,.2)", color: "#F96801", textDecoration: "none"
+                      }}>
+                        📞 Call
+                      </a>
+                    )}
+                    <button onClick={getDirections} style={{
+                      fontSize: "11px", padding: "4px 10px", borderRadius: "999px",
+                      background: "rgba(37,194,195,.2)", color: "#25C2C3", border: "none", cursor: "pointer"
+                    }}>
+                      🗺️ Route
+                    </button>
+                  </div>
+                </div>
+              </InfoWindowF>
+            )}
+
+            {directions && (
+              <DirectionsRenderer
+                directions={directions}
+                options={{
+                  polylineOptions: {
+                    strokeColor: "#F96801",
+                    strokeWeight: 4,
+                    strokeOpacity: 0.8,
+                  },
+                  suppressMarkers: true,
+                }}
+              />
+            )}
+          </GoogleMap>
+        </div>
+      </div>
+    </LoadScript>
   )
 }

@@ -46,7 +46,7 @@ export async function POST(req: Request) {
                 content: [
                   {
                     type: "text",
-                    text: "You are a medical prescription OCR system. Extract all text from this prescription image. Identify: doctor name, hospital, medicines (name, dosage, timing), diagnosis, tests, advice, follow-up date. Format the response in Bengali. List each medicine with its dosage and timing clearly.",
+                    text: "You are an advanced medical OCR system specialized in reading handwritten prescriptions. This image may contain BOTH typed and HANDWRITTEN text. Carefully read every character, including doctor's handwriting which may be cursive or rushed.\n\nExtract ALL of the following details:\n1. Doctor's name and chamber/hospital\n2. Patient name & age/weight (if visible)\n3. Date of prescription\n4. MEDICINES: For each medicine, extract: name, strength (e.g., 500mg, 250mg/5ml), dosage form (tablet/capsule/syrup/injection), dose (e.g., 1+0+1, 1+1+1, before/after meal), duration (e.g., 7 days, 14 days)\n5. Diagnosis / presenting complaints\n6. Investigations / tests advised\n7. Advice / instructions\n8. Follow-up date\n\nFormat output in Bengali. Use a clear structured format with medicine names in BOLD. For each medicine, list: name, strength, dose timing, and duration separated by clear lines.\n\nIMPORTANT: This is a HANDWRITTEN prescription OCR task. Do your best to read even unclear handwriting. If you cannot read something, mark it as [অপাঠ্য].",
                   },
                   {
                     type: "image_url",
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         const data = await res.json()
         const extractedText = data.choices?.[0]?.message?.content || ""
 
-        const medicineRegex = /([\u0980-\u09FF\w\s\-]+?)\s*[\(\[]?(\d+mg|\d+\s*ml|\d+\s*ট্যাবলেট|\d+\s*ক্যাপসুল)[\)\]]?/gi
+        const medicineRegex = /(?:ঔষধ|ওষুধ|Medicine|মেডিসিন|ট্যাব|Tab|ক্যাপ|Cap|সিরাপ|Syrup|ইনজেকশন|Inj)[:\s]*([\u0980-\u09FF\w\s\-\.\,\/]+?)\s*[\(\[]?(\d+\s*(?:mg|ml|mcg|গ্রাম|ইউনিট|ট্যাবলেট|ক্যাপসুল|সিরাপ|এমএল|এমজি)?)[\)\]]?/gi
         const medicines: { name: string; dosage: string }[] = []
         let match
         while ((match = medicineRegex.exec(extractedText)) !== null) {

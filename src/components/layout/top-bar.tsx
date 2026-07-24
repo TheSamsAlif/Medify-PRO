@@ -1,10 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import { useTheme } from "next-themes"
 import { signOut } from "next-auth/react"
-import { Bell, Sun, Moon, Search, Menu } from "lucide-react"
+import { Bell, Search, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -17,21 +15,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LanguageToggle } from "@/components/layout/language-toggle"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Sidebar } from "@/components/layout/sidebar"
 
 export function TopBar() {
   const { data: session } = useSession()
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   const pageTitles: Record<string, string> = {
     "/dashboard": "ড্যাশবোর্ড",
     "/medicines": "ওষুধসমূহ",
@@ -52,75 +41,64 @@ export function TopBar() {
   const currentTitle = pageTitles[pathname] || "Medify"
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 lg:pl-64 bg-white/90 dark:bg-gray-950/90 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50">
+    <header className="fixed top-0 left-0 right-0 z-30 lg:pl-64 nav-glass">
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center gap-3">
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <Sheet>
             <SheetTrigger>
-              <Button variant="ghost" size="icon" className="lg:hidden rounded-full">
+              <Button variant="ghost" size="icon" className="lg:hidden rounded-full text-[#A5ABB0] hover:text-[#EFF2F2]">
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-72">
+            <SheetContent side="left" className="p-0 w-72 bg-[#040406] border-r border-white/[.06]">
               <Sidebar />
             </SheetContent>
           </Sheet>
-          <h1 className="text-lg font-bold truncate">{currentTitle}</h1>
+          <h1 className="text-lg font-bold text-[#EFF2F2]">{currentTitle}</h1>
         </div>
 
         <div className="hidden md:flex items-center flex-1 max-w-sm mx-4">
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A5ABB0]" />
             <Input
               placeholder="সার্চ করুন..."
-              className="pl-9 h-9 rounded-full bg-gray-100 dark:bg-gray-900 border-0 text-sm"
+              className="pl-9 h-9 rounded-full bg-white/[.04] border border-white/[.08] text-sm text-[#EFF2F2] placeholder:text-[#A5ABB0] focus:border-[#F96801]/50"
             />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {mounted && <LanguageToggle />}
-          {mounted && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-full w-9 h-9"
-            >
-              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </Button>
-          )}
-          <Button variant="ghost" size="icon" className="rounded-full w-9 h-9 relative">
+          <Button variant="ghost" size="icon" className="rounded-full w-9 h-9 text-[#A5ABB0] hover:text-[#EFF2F2] relative">
             <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#DE1B2D] rounded-full animate-pulse" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="ghost" size="icon" className="rounded-full w-9 h-9 ml-1">
-                <Avatar className="w-8 h-8">
+                <Avatar className="w-8 h-8 ring-2 ring-[#F96801]/30">
                   <AvatarImage src={session?.user?.image || ""} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                  <AvatarFallback className="bg-[#F96801]/20 text-[#F96801] text-xs font-medium">
                     {session?.user?.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2]">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{session?.user?.name}</span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">{session?.user?.email}</span>
+                  <span className="text-xs text-[#A5ABB0]">{session?.user?.email}</span>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/[.06]" />
+              <DropdownMenuItem className="focus:bg-[#F96801]/12 focus:text-[#F96801]">
                 <a href="/profile" className="block w-full">প্রোফাইল</a>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem className="focus:bg-[#F96801]/12 focus:text-[#F96801]">
                 <a href="/dashboard" className="block w-full">ড্যাশবোর্ড</a>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-500" onClick={() => signOut()}>
+              <DropdownMenuSeparator className="bg-white/[.06]" />
+              <DropdownMenuItem className="text-[#f87171] focus:bg-[#f87171]/12" onClick={() => signOut()}>
                 সাইন আউট
               </DropdownMenuItem>
             </DropdownMenuContent>

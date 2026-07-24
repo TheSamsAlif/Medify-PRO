@@ -21,14 +21,8 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
     try {
-      const result = await signIn("credentials", {
-        email: form.email,
-        password: form.password,
-        redirect: false,
-      })
-
+      const result = await signIn("credentials", { email: form.email, password: form.password, redirect: false })
       if (result?.error) {
         if (result.error.includes("Configuration")) {
           toast.error("সার্ভার কনফিগারেশন ত্রুটি। অনুগ্রহ করে .env.local এ DATABASE_URL ও AUTH_SECRET সেট করুন।")
@@ -39,93 +33,64 @@ export default function LoginPage() {
         }
         return
       }
-
       toast.success("সফলভাবে লগইন হয়েছে")
       router.push("/dashboard")
       router.refresh()
-    } catch (err) {
-      console.error("Login error:", err)
-      toast.error("সার্ভার ত্রুটি। নিশ্চিত করুন PostgreSQL চলছে এবং DATABASE_URL সঠিক।")
+    } catch {
+      toast.error("সার্ভার ত্রুটি")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950">
-      <div className="absolute inset-0 bg-grid-gray-900/[0.02] dark:bg-grid-white/[0.02]" />
-      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl" />
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#040406]">
+      <div className="fixed inset-0 z-[-4]">
+        <div className="aurora-blob w-[500px] h-[500px] bg-[#F96801]/15 top-[-10%] left-[-5%] animate-aurora-1" />
+        <div className="aurora-blob w-[400px] h-[400px] bg-[#DE1B2D]/10 top-[40%] right-[-8%] animate-aurora-2" />
+      </div>
+      <div className="fixed inset-0 z-[-3] tech-grid" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md px-4 relative z-10"
-      >
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-primary mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          হোম পেজে ফিরুন
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+        className="w-full max-w-md px-4 relative z-10">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-[#A5ABB0] hover:text-[#F96801] mb-8 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> হোম পেজে ফিরুন
         </Link>
 
-        <Card className="border-0 shadow-2xl shadow-black/5 dark:shadow-black/20 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl">
+        <Card className="border border-white/[.08] bg-[#0a0d16] backdrop-blur-xl shadow-2xl shadow-black/50">
           <CardHeader className="text-center pb-2">
             <div className="flex justify-center mb-4">
-              <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                <Heart className="w-7 h-7 text-white" fill="white" />
+              <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-[#F96801]/30">
+                <Heart className="w-7 h-7" fill="currentColor" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">স্বাগতম</CardTitle>
-            <CardDescription className="text-base">
-              আপনার অ্যাকাউন্টে লগইন করুন
-            </CardDescription>
+            <CardTitle className="text-2xl font-bold text-[#EFF2F2]">স্বাগতম</CardTitle>
+            <CardDescription className="text-[#A5ABB0]">আপনার অ্যাকাউন্টে লগইন করুন</CardDescription>
           </CardHeader>
 
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-5 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-base font-medium">
-                  ইমেইল
-                </Label>
+                <Label htmlFor="email" className="text-[#A5ABB0]">ইমেইল</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="pl-11 py-6 text-base rounded-xl"
-                    required
-                    autoComplete="email"
-                  />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A5ABB0]" />
+                  <Input id="email" type="email" placeholder="your@email.com"
+                    value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    className="pl-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-[#EFF2F2] placeholder:text-[#A5ABB0] focus:border-[#F96801]/50"
+                    required autoComplete="email" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-base font-medium">
-                  পাসওয়ার্ড
-                </Label>
+                <Label htmlFor="password" className="text-[#A5ABB0]">পাসওয়ার্ড</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="pl-11 pr-11 py-6 text-base rounded-xl"
-                    required
-                    autoComplete="current-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A5ABB0]" />
+                  <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••"
+                    value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    className="pl-11 pr-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-[#EFF2F2] placeholder:text-[#A5ABB0] focus:border-[#F96801]/50"
+                    required autoComplete="current-password" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A5ABB0] hover:text-[#EFF2F2]">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
@@ -133,20 +98,15 @@ export default function LoginPage() {
             </CardContent>
 
             <CardFooter className="flex flex-col gap-4 pt-2">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-6 text-base rounded-xl gradient-primary text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                ) : null}
+              <Button type="submit" disabled={isLoading}
+                className="w-full py-6 text-base rounded-xl gradient-primary text-[#160500] shadow-lg shadow-[#F96801]/20 btn-shine">
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                 লগইন করুন
               </Button>
 
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+              <p className="text-sm text-[#A5ABB0] text-center">
                 অ্যাকাউন্ট নেই?{" "}
-                <Link href="/auth/register" className="text-primary font-medium hover:underline">
+                <Link href="/auth/register" className="text-[#F96801] font-medium hover:underline">
                   রেজিস্টার করুন
                 </Link>
               </p>
