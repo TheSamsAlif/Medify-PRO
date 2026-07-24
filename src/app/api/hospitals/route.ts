@@ -7,7 +7,7 @@ const OVERPASS_MIRRORS = [
   "https://overpass.kumi.systems/api/interpreter",
 ]
 
-const SEARCH_RADII = [1000, 3000, 5000]
+const SEARCH_RADII = [2000, 5000, 10000]
 
 function buildQuery(lat: number, lng: number, radius: number, type: string): string {
   const around = `(around:${radius},${lat},${lng})`
@@ -18,11 +18,10 @@ function buildQuery(lat: number, lng: number, radius: number, type: string): str
   } else if (type === "diagnostic") {
     filters = `node["amenity"="doctors"]${around};node["healthcare"="centre"]${around}`
   } else if (type === "hospital") {
-    filters = `node["amenity"="hospital"]${around};way["amenity"="hospital"]${around};node["healthcare"="hospital"]${around};node["amenity"="clinic"]${around};`
+    filters = `node["amenity"="hospital"]${around};node["healthcare"="hospital"]${around};node["amenity"="clinic"]${around};`
   } else {
     filters = [
       `node["amenity"="hospital"]${around}`,
-      `way["amenity"="hospital"]${around}`,
       `node["amenity"="clinic"]${around}`,
       `node["amenity"="doctors"]${around}`,
       `node["amenity"="pharmacy"]${around}`,
@@ -31,7 +30,7 @@ function buildQuery(lat: number, lng: number, radius: number, type: string): str
     ].join(";")
   }
 
-  return `[out:json][timeout:8];(${filters};);out center 20;`
+  return `[out:json][timeout:20];(${filters};);out 50;`
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -43,7 +42,7 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 async function tryOverpassMirror(url: string, query: string, signal: AbortSignal): Promise<Response | null> {
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(url, {
         method: "POST",
@@ -51,18 +50,19 @@ async function tryOverpassMirror(url: string, query: string, signal: AbortSignal
         body: `data=${encodeURIComponent(query)}`,
         signal,
       })
-      if (res.ok) return res
       const text = await res.text().catch(() => "")
-      if (text.includes("too busy") || text.includes("rate limit")) {
+      if (!text) return null
+      if (res.ok && text.startsWith("{")) return new Response(text, { headers: { "Content-Type": "application/json" } })
+      if (text.includes("too busy") || text.includes("rate limit") || res.status === 429) {
         console.warn(`Overpass ${url} busy, retry ${attempt + 1}...`)
-        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
-        if (attempt === 0) continue
+        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)))
+        continue
       }
-      console.warn(`Overpass mirror ${url} failed: ${res.status}`, text.slice(0, 200))
+      console.warn(`Overpass ${url} failed: ${res.status}`, text.slice(0, 200))
       return null
     } catch {
-      if (attempt === 0) {
-        await new Promise(r => setTimeout(r, 1000))
+      if (attempt < 2) {
+        await new Promise(r => setTimeout(r, 2000))
         continue
       }
       return null
@@ -83,60 +83,62 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Location required. Allow GPS access or enter an address." }, { status: 400 })
     }
 
-    let lastError = ""
     let hospitals: Record<string, unknown>[] = []
 
     for (const radius of SEARCH_RADII) {
+      if (hospitals.length) break
       const query = buildQuery(lat, lng, radius, type)
 
       for (const mirror of OVERPASS_MIRRORS) {
+        if (hospitals.length) break
         const controller = new AbortController()
-        const timer = setTimeout(() => controller.abort(), 8000 + radius / 500)
+        const timer = setTimeout(() => controller.abort(), 25000)
 
         const res = await tryOverpassMirror(mirror, query, controller.signal)
         clearTimeout(timer)
 
-        if (res) {
+        if (!res) continue
+
+        try {
           const data = await res.json()
           if (data.elements?.length) {
             hospitals = data.elements
               .filter((el: Record<string, unknown>) => el.tags)
               .map((el: Record<string, unknown>) => {
                 const t = el.tags as Record<string, string>
-                const elLat = el.type === "way" ? ((el.center as Record<string, number>)?.lat ?? lat) : (el.lat as number)
-                const elLng = el.type === "way" ? ((el.center as Record<string, number>)?.lon ?? lng) : (el.lon as number)
                 const ot = t.amenity || t.healthcare || "hospital"
                 return {
                   id: `${el.type}-${el.id}`,
                   name: t.name || t["name:bn"] || unknownName(ot),
                   type: TYPE_LABEL[ot] || "hospital",
                   address: t["addr:full"] || t["addr:street"] || t["addr:city"] || t["addr:district"] || "",
-                  latitude: elLat,
-                  longitude: elLng,
+                  latitude: el.lat as number,
+                  longitude: el.lon as number,
                   phone: t.phone || t["contact:phone"] || null,
                   rating: null,
                   emergency: ot === "hospital" || ot === "clinic",
                   ambulance: t.ambulance === "yes",
                   bloodBank: false,
                   specialties: [ot],
-                  distance: calcDist(lat, lng, elLat, elLng),
+                  distance: calcDist(lat, lng, el.lat as number, el.lon as number),
                 }
               })
               .sort((a: { distance: number }, b: { distance: number }) => a.distance - b.distance)
               .slice(0, 50)
 
-            console.log(`[Hospitals] Found ${hospitals.length} results at ${radius}m from mirror ${mirror} (${Date.now() - start}ms)`)
-            return NextResponse.json(hospitals)
+            console.log(`[Hospitals] Found ${hospitals.length} results at ${radius}m from ${mirror} (${Date.now() - start}ms)`)
           }
-          // No results at this radius, try next radius
-          break
-        } else {
-          lastError = `Could not reach hospital database. Check internet connection.`
+        } catch {
+          console.warn(`[Hospitals] Parse error from ${mirror} (${Date.now() - start}ms)`)
         }
       }
     }
 
-    console.log(`[Hospitals] No results found after all radii and mirrors (${Date.now() - start}ms)`)
+    if (hospitals.length) {
+      return NextResponse.json(hospitals)
+    }
+
+    console.log(`[Hospitals] No results (${Date.now() - start}ms)`)
     return NextResponse.json([])
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error"
