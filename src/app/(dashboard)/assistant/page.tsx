@@ -140,56 +140,56 @@ export default function AssistantPage() {
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
-            <Bot className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-[#F96801]/30">
+            <Bot className="w-6 h-6 text-[#160500]" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold">AI স্বাস্থ্য সহায়ক</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <h2 className="text-2xl font-bold text-[#EFF2F2]">AI স্বাস্থ্য সহায়ক</h2>
+            <p className="text-sm text-[#A5ABB0]">
               আপনার ব্যক্তিগত AI মেডিকেল অ্যাসিস্ট্যান্ট
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="gap-1">
+          <Badge variant="outline" className="gap-1 border-[#F96801]/30 text-[#F96801]">
             <Sparkles className="w-3 h-3" />
-            AI
+            Gemini AI
           </Badge>
           {messages.length > 0 && (
-            <Button variant="ghost" size="icon" onClick={clearChat} className="rounded-full">
-              <Trash2 className="w-4 h-4 text-gray-400" />
+            <Button variant="ghost" size="icon" onClick={clearChat} className="rounded-full text-[#A5ABB0] hover:text-[#DE1B2D] hover:bg-white/[.06]">
+              <Trash2 className="w-4 h-4" />
             </Button>
           )}
         </div>
       </div>
 
-      <Card className="flex-1 flex flex-col border-0 shadow-lg shadow-black/5 overflow-hidden">
+      <Card className="flex-1 flex flex-col border border-white/[.08] bg-[#0a0d16] backdrop-blur-xl overflow-hidden">
         <ScrollArea ref={scrollRef} className="flex-1 p-4 md:p-6">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-              <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center mb-6 shadow-xl shadow-primary/20">
-                <Bot className="w-10 h-10 text-white" />
+              <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center mb-6 shadow-xl shadow-[#F96801]/30">
+                <Bot className="w-10 h-10 text-[#160500]" />
               </div>
-              <h3 className="text-xl font-bold mb-2">আমি Medify AI</h3>
-              <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
+              <h3 className="text-xl font-bold text-[#EFF2F2] mb-2">আমি Medify AI</h3>
+              <p className="text-[#A5ABB0] max-w-md mb-8">
                 আমি আপনার ব্যক্তিগত স্বাস্থ্যসেবা সহায়ক। ওষুধ, রোগ, ডায়েট, লাইফস্টাইল — সব বিষয়ে 
-                বাংলা বা ইংরেজিতে问我, আমি উত্তর দেব।
+                বাংলা বা ইংরেজিতে জিজ্ঞাসা করুন, আমি উত্তর দেব।
               </p>
               <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
                 {suggestions.map((s, i) => (
                   <button
                     key={i}
                     onClick={() => setInput(s.text)}
-                    className="flex items-start gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all text-left"
+                    className="flex items-start gap-3 p-4 rounded-2xl bg-white/[.04] border border-white/[.08] hover:border-[#F96801]/30 transition-all text-left"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <s.icon className="w-4 h-4 text-primary" />
+                    <div className="w-8 h-8 rounded-lg bg-[#F96801]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <s.icon className="w-4 h-4 text-[#F96801]" />
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{s.text}</p>
+                    <p className="text-sm text-[#EFF2F2]">{s.text}</p>
                   </button>
                 ))}
               </div>
-              <p className="mt-8 text-xs text-gray-400 dark:text-gray-600 max-w-md">
+              <p className="mt-8 text-xs text-[#A5ABB0]/60 max-w-md">
                 * এই তথ্য শিক্ষামূলক এবং লাইসেন্সপ্রাপ্ত ডাক্তারের পরামর্শের বিকল্প নয়।
               </p>
             </div>
@@ -203,22 +203,22 @@ export default function AssistantPage() {
                   className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {msg.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 mt-1">
-                      <Bot className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 mt-1 shadow-lg shadow-[#F96801]/20">
+                      <Bot className="w-4 h-4 text-[#160500]" />
                     </div>
                   )}
                   <div
-                    className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 ${
+                    className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                       msg.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-tr-sm"
-                        : "bg-gray-100 dark:bg-gray-900 rounded-tl-sm"
+                        ? "bg-gradient-to-br from-[#F96801] to-[#FF8A1E] text-[#160500] rounded-tr-sm"
+                        : "bg-white/[.06] border border-white/[.08] text-[#EFF2F2] rounded-tl-sm"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    {msg.content}
                   </div>
                   {msg.role === "user" && (
-                    <div className="w-8 h-8 rounded-xl bg-gray-200 dark:bg-gray-800 flex items-center justify-center flex-shrink-0 mt-1">
-                      <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    <div className="w-8 h-8 rounded-xl bg-[#F96801]/20 flex items-center justify-center flex-shrink-0 mt-1">
+                      <User className="w-4 h-4 text-[#F96801]" />
                     </div>
                   )}
                 </motion.div>
@@ -229,13 +229,13 @@ export default function AssistantPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex gap-3"
                 >
-                  <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-4 h-4 text-white" />
+                  <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#F96801]/20">
+                    <Bot className="w-4 h-4 text-[#160500]" />
                   </div>
-                  <div className="bg-gray-100 dark:bg-gray-900 rounded-2xl rounded-tl-sm px-4 py-3">
-                    <div className="flex gap-1">
-                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                      <span className="text-sm text-gray-500">ভাবছে...</span>
+                  <div className="bg-white/[.06] border border-white/[.08] rounded-2xl rounded-tl-sm px-4 py-3">
+                    <div className="flex gap-2 items-center">
+                      <Loader2 className="w-4 h-4 animate-spin text-[#F96801]" />
+                      <span className="text-sm text-[#A5ABB0]">ভাবছে...</span>
                     </div>
                   </div>
                 </motion.div>
@@ -244,7 +244,7 @@ export default function AssistantPage() {
           )}
         </ScrollArea>
 
-        <div className="border-t border-gray-200 dark:border-gray-800 p-4">
+        <div className="border-t border-white/[.08] p-4 bg-[#0a0d16]">
           <div className="flex items-end gap-2">
             <div className="flex-1 relative">
               <textarea
@@ -253,7 +253,7 @@ export default function AssistantPage() {
                 onKeyDown={handleKeyDown}
                 placeholder="আপনার প্রশ্ন লিখুন... (Enter চাপুন পাঠাতে)"
                 rows={1}
-                className="w-full resize-none rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary min-h-[48px] max-h-32"
+                className="w-full resize-none rounded-2xl border border-white/[.08] bg-white/[.04] px-4 py-3.5 text-sm text-[#EFF2F2] placeholder:text-[#A5ABB0] focus:outline-none focus:ring-2 focus:ring-[#F96801]/20 focus:border-[#F96801]/50 min-h-[48px] max-h-32"
                 style={{ height: "auto" }}
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement
@@ -266,19 +266,19 @@ export default function AssistantPage() {
               variant="ghost"
               size="icon"
               onClick={toggleRecording}
-              className={`rounded-full w-11 h-11 flex-shrink-0 ${isRecording ? "bg-red-500 text-white animate-pulse" : "text-gray-400"}`}
+              className={`rounded-full w-11 h-11 flex-shrink-0 ${isRecording ? "bg-[#DE1B2D] text-white animate-pulse" : "text-[#A5ABB0] hover:text-[#EFF2F2] hover:bg-white/[.06]"}`}
             >
               {isRecording ? <Square className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
             </Button>
             <Button
               onClick={handleSend}
               disabled={!input.trim() || loading}
-              className="rounded-full w-11 h-11 flex-shrink-0 gradient-primary text-white"
+              className="rounded-full w-11 h-11 flex-shrink-0 gradient-primary text-[#160500] shadow-lg shadow-[#F96801]/20 btn-shine"
             >
               <Send className="w-5 h-5" />
             </Button>
           </div>
-          <p className="text-[10px] text-gray-400 dark:text-gray-600 mt-2 text-center">
+          <p className="text-[10px] text-[#A5ABB0]/60 mt-2 text-center">
             Medify AI শিক্ষামূলক তথ্য প্রদান করে, এটি লাইসেন্সপ্রাপ্ত ডাক্তারের পরামর্শের বিকল্প নয়।
           </p>
         </div>
