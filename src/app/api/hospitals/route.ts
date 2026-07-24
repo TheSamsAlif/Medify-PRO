@@ -43,20 +43,32 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 async function tryOverpassMirror(url: string, query: string, signal: AbortSignal): Promise<Response | null> {
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: query,
-      signal,
-    })
-    if (res.ok) return res
-    const text = await res.text().catch(() => "")
-    console.warn(`Overpass mirror ${url} failed: ${res.status}`, text.slice(0, 200))
-    return null
-  } catch {
-    return null
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `data=${encodeURIComponent(query)}`,
+        signal,
+      })
+      if (res.ok) return res
+      const text = await res.text().catch(() => "")
+      if (text.includes("too busy") || text.includes("rate limit")) {
+        console.warn(`Overpass ${url} busy, retry ${attempt + 1}...`)
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+        if (attempt === 0) continue
+      }
+      console.warn(`Overpass mirror ${url} failed: ${res.status}`, text.slice(0, 200))
+      return null
+    } catch {
+      if (attempt === 0) {
+        await new Promise(r => setTimeout(r, 1000))
+        continue
+      }
+      return null
+    }
   }
+  return null
 }
 
 export async function GET(req: NextRequest) {
