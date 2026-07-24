@@ -3,8 +3,11 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
 
 const MODELS = [
+  "google/gemini-2.0-flash-exp:free",
+  "google/gemini-2.0-pro-exp-02-05:free",
   "deepseek/deepseek-chat-v3-0724:free",
   "qwen/qwen-vl-plus:free",
+  "cohere/command-r-plus-08-2024:free",
   "meta-llama/llama-3.2-3b-instruct:free",
   "google/gemma-2-9b-it:free",
 ]
