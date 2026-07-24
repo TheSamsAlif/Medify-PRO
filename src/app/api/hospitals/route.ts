@@ -41,12 +41,11 @@ export async function GET(req: NextRequest) {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 9000)
 
-    const res = await fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: "data=" + encodeURIComponent(query),
-      signal: controller.signal,
-    })
+    // Use GET with query parameter (avoids 406 issues with POST body)
+    const res = await fetch(
+      `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`,
+      { signal: controller.signal }
+    )
     clearTimeout(timer)
 
     if (!res.ok) {
