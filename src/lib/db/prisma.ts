@@ -5,10 +5,24 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-})
+function createPrismaClient() {
+  const dbUrl = process.env.DATABASE_URL
+  if (!dbUrl) {
+    if (typeof window === "undefined") {
+      console.error(
+        "\n❌ DATABASE_URL environment variable is not set!\n" +
+        "   Please set it in your .env.local file or Vercel environment variables.\n" +
+        "   Example: DATABASE_URL=\"postgresql://user:pass@host:5432/medify?schema=public\"\n" +
+        "   Get a free PostgreSQL database at https://neon.tech\n"
+      )
+    }
+    throw new Error("DATABASE_URL is not configured. Server cannot start without a database.")
+  }
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter })
+  const adapter = new PrismaPg({ connectionString: dbUrl })
+  return new PrismaClient({ adapter })
+}
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient()
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma

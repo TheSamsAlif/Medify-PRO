@@ -1,5 +1,11 @@
 import type { NextAuthConfig } from "next-auth"
 
+const protectedPaths = [
+  "/dashboard", "/medicines", "/assistant", "/guardian", "/doctor",
+  "/emergency", "/hospitals", "/records", "/appointments", "/profile",
+  "/prescriptions", "/sos", "/interactions", "/lifestyle",
+]
+
 export const authConfig = {
   pages: {
     signIn: "/auth/login",
@@ -7,19 +13,7 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
-      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard") ||
-        nextUrl.pathname.startsWith("/medicines") ||
-        nextUrl.pathname.startsWith("/assistant") ||
-        nextUrl.pathname.startsWith("/guardian") ||
-        nextUrl.pathname.startsWith("/doctor") ||
-        nextUrl.pathname.startsWith("/emergency") ||
-        nextUrl.pathname.startsWith("/hospitals") ||
-        nextUrl.pathname.startsWith("/records") ||
-        nextUrl.pathname.startsWith("/appointments") ||
-        nextUrl.pathname.startsWith("/profile") ||
-        nextUrl.pathname.startsWith("/prescriptions") ||
-        nextUrl.pathname.startsWith("/sos")
-
+      const isOnDashboard = protectedPaths.some(p => nextUrl.pathname.startsWith(p))
       const isOnAuth = nextUrl.pathname.startsWith("/auth")
 
       if (isOnDashboard) {
@@ -35,20 +29,6 @@ export const authConfig = {
       }
 
       return true
-    },
-    jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
-        token.role = (user as { role?: string }).role || "PATIENT"
-      }
-      return token
-    },
-    session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as string
-      }
-      return session
     },
   },
   providers: [],
