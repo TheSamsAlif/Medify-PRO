@@ -120,75 +120,108 @@ export default function HospitalsPage() {
         lng = defaultCenter[1]
       }
 
-      // Call Overpass API directly from browser (avoids Vercel server-side issues)
-      const type = filter !== "all" ? filter : "all"
-      const around = `(around:5000,${lat},${lng})`
-      let filters = ""
-      if (type === "pharmacy") {
-        filters = `node["amenity"="pharmacy"]${around};`
-      } else if (type === "diagnostic") {
-        filters = `node["healthcare"="doctor"]${around};`
-      } else if (type === "hospital") {
-        filters = `node["amenity"="hospital"]${around};way["amenity"="hospital"]${around};node["amenity"="clinic"]${around};`
-      } else {
-        filters = `node["amenity"="hospital"]${around};node["amenity"="clinic"]${around};node["amenity"="pharmacy"]${around};node["healthcare"="doctor"]${around};way["amenity"="hospital"]${around};`
-      }
-      const query = `[out:json][timeout:8];(${filters});out center 20;`
-
-      const res = await fetch("https://overpass-api.de/api/interpreter", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `data=${encodeURIComponent(query)}`,
-      })
-
-      if (!res.ok) {
-        setError(`Overpass API error: ${res.status}`)
-        setLoading(false)
-        return
-      }
-
+      // Call our server-side API route which proxies to Overpass
+      const params = new URLSearchParams()
+      params.set("lat", lat.toString())
+      params.set("lng", lng.toString())
+      if (filter !== "all") params.set("type", filter)
+      const res = await fetch(`/api/hospitals?${params}`)
       const data = await res.json()
-      if (!data.elements?.length) {
-        setError("এই এলাকায় কোনো হাসপাতাল পাওয়া যায়নি। অন্য এলাকা সার্চ করুন।")
-        setHospitals([])
+
+      if (!res.ok || data.error) {
+        // Fallback: call Overpass directly from browser
+        const type = filter !== "all" ? filter : "all"
+        const around = `(around:5000,${lat},${lng})`
+        let filters = ""
+        if (type === "pharmacy") {
+          filters = `node["amenity"="pharmacy"]${around};`
+        } else if (type === "diagnostic") {
+          filters = `node["healthcare"="doctor"]${around};`
+        } else if (type === "hospital") {
+          filters = `node["amenity"="hospital"]${around};way["amenity"="hospital"]${around};node["amenity"="clinic"]${around};`
+        } else {
+          filters = `node["amenity"="hospital"]${around};node["amenity"="clinic"]${around};node["amenity"="pharmacy"]${around};node["healthcare"="doctor"]${around};way["amenity"="hospital"]${around};`
+        }
+        const query = `[out:json][timeout:8];(${filters});out center 20;`
+
+        const res2 = await fetch("https://overpass-api.de/api/interpreter", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ data: query }).toString(),
+        })
+
+        if (!res2.ok) {
+          setError(`API error: ${res2.status}`)
+          setLoading(false)
+          return
+        }
+
+        const data2 = await res2.json()
+        if (!data2.elements?.length) {
+          setError("এই এলাকায় কোনো হাসপাতাল পাওয়া যায়নি। অন্য এলাকা সার্চ করুন।")
+          setHospitals([])
+          setLoading(false)
+          return
+        }
+
+        const hospitals = parseOverpass(data2, lat, lng)
+        setHospitals(hospitals)
         setLoading(false)
         return
       }
 
-      const hospitals = data.elements
-        .filter((el: Record<string, unknown>) => el.tags)
-        .map((el: Record<string, unknown>) => {
-          const t = el.tags as Record<string, string>
-          const lat2 = el.type === "way" ? ((el.center as Record<string, number>)?.lat ?? lat!) : (el.lat as number)
-          const lng2 = el.type === "way" ? ((el.center as Record<string, number>)?.lon ?? lng!) : (el.lon as number)
-          const ot = t.amenity || t.healthcare || "hospital"
-          const typeLabel: Record<string, string> = { hospital: "hospital", clinic: "hospital", pharmacy: "pharmacy", doctor: "diagnostic" }
-          return {
-            id: `${el.type}-${el.id}`,
-            name: t.name || t["name:bn"] || (ot === "hospital" ? "হাসপাতাল" : ot === "pharmacy" ? "ফার্মেসী" : ot === "clinic" ? "ক্লিনিক" : "ডাক্তার"),
-            type: typeLabel[ot] || "hospital",
-            address: t["addr:full"] || t["addr:street"] || t["addr:city"] || "",
-            latitude: lat2,
-            longitude: lng2,
-            phone: t.phone || t["contact:phone"] || null,
-            rating: null,
-            emergency: ot === "hospital",
-            ambulance: t.ambulance === "yes",
-            bloodBank: false,
-            specialties: [ot],
-            distance: calcDist(lat!, lng!, lat2, lng2),
-          }
-        })
-        .sort((a: { distance: number }, b: { distance: number }) => a.distance - b.distance)
-        .slice(0, 50)
-
-      setHospitals(hospitals)
+      if (Array.isArray(data)) {
+        setHospitals(data)
+        if (data.length === 0) setError("এই এলাকায় কোনো হাসপাতাল পাওয়া যায়নি। অন্য এলাকা সার্চ করুন।")
+      } else {
+        setError(data.error || "ডাটা লোড করতে সমস্যা হয়েছে")
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "নেটওয়ার্ক ত্রুটি"
       setError(msg)
     } finally {
       setLoading(false)
     }
+  }
+
+  const parseOverpass = (data: { elements?: Record<string, unknown>[] }, lat: number, lng: number) => {
+    const typeLabel: Record<string, string> = { hospital: "hospital", clinic: "hospital", pharmacy: "pharmacy", doctor: "diagnostic" }
+    const elements = data.elements || []
+    return elements
+      .filter((el) => {
+        const tags = (el as Record<string, unknown>).tags
+        return tags && typeof tags === "object"
+      })
+      .map((el) => {
+        const t = (el as Record<string, Record<string, string>>).tags || {}
+        const lat2 = (el as Record<string, unknown>).type === "way" ? (((el as Record<string, unknown>).center as Record<string, number>)?.lat ?? lat) : (el as Record<string, number>).lat
+        const lng2 = (el as Record<string, unknown>).type === "way" ? (((el as Record<string, unknown>).center as Record<string, number>)?.lon ?? lng) : (el as Record<string, number>).lon
+        const ot = t.amenity || t.healthcare || "hospital"
+        return {
+          id: `${(el as Record<string, string>).type}-${(el as Record<string, number>).id}`,
+          name: t.name || t["name:bn"] || (ot === "hospital" ? "হাসপাতাল" : ot === "pharmacy" ? "ফার্মেসী" : ot === "clinic" ? "ক্লিনিক" : "ডাক্তার"),
+          type: typeLabel[ot] || "hospital",
+          address: t["addr:full"] || t["addr:street"] || t["addr:city"] || "",
+          city: t["addr:city"] || "",
+          state: t["addr:state"] || "",
+          email: null,
+          website: t.website || null,
+          latitude: lat2,
+          longitude: lng2,
+          phone: t.phone || t["contact:phone"] || null,
+          rating: null,
+          emergency: ot === "hospital",
+          ambulance: t.ambulance === "yes",
+          bloodBank: false,
+          diagnostic: ot === "doctor",
+          specialties: [ot],
+          openingHours: t.opening_hours || null,
+          imageUrl: null,
+          distance: calcDist(lat, lng, lat2, lng2),
+        }
+      })
+      .sort((a: { distance: number }, b: { distance: number }) => a.distance - b.distance)
+      .slice(0, 50)
   }
 
   useEffect(() => {
