@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server"
 
-const TYPES: Record<string, string[]> = {
-  all: ['"amenity"="hospital"', '"amenity"="clinic"', '"amenity"="pharmacy"', '"healthcare"="doctor"'],
-  hospital: ['"amenity"="hospital"', '"amenity"="clinic"'],
-  diagnostic: ['"healthcare"="doctor"'],
-  pharmacy: ['"amenity"="pharmacy"'],
+const QUERY_TEMPLATE = `[out:json][timeout:8];({{FILTERS}});out center 20;`
+
+const TYPE_FILTERS: Record<string, string> = {
+  all: 'node["amenity"~"hospital|clinic|pharmacy"](around:5000,{{LAT}},{{LNG}});way["amenity"~"hospital|clinic"](around:5000,{{LAT}},{{LNG}});node["healthcare"="doctor"](around:5000,{{LAT}},{{LNG}});',
+  hospital: 'node["amenity"~"hospital|clinic"](around:5000,{{LAT}},{{LNG}});way["amenity"="hospital"](around:5000,{{LAT}},{{LNG}});',
+  diagnostic: 'node["healthcare"="doctor"](around:5000,{{LAT}},{{LNG}});',
+  pharmacy: 'node["amenity"="pharmacy"](around:5000,{{LAT}},{{LNG}});',
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -25,38 +27,42 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "lat and lng required" }, { status: 400 })
     }
 
-    const filters = TYPES[type] || TYPES.all
-    const query = `
-      [out:json][timeout:10];
-      (
-        ${filters.map(f => `node${f}(around:5000,${lat},${lng});`).join("\n")}
-        ${filters.map(f => `way${f}(around:5000,${lat},${lng});`).join("\n")}
-      );
-      out center 20;
-    `
+    const filter = TYPE_FILTERS[type] || TYPE_FILTERS.all
+    const query = QUERY_TEMPLATE.replace("{{FILTERS}}", filter.replaceAll("{{LAT}}", lat.toString()).replaceAll("{{LNG}}", lng.toString()))
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 9000)
 
     const res = await fetch("https://overpass-api.de/api/interpreter", {
       method: "POST",
       body: `data=${encodeURIComponent(query)}`,
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      signal: controller.signal,
     })
+    clearTimeout(timeout)
 
     if (!res.ok) {
-      return NextResponse.json({ error: "Overpass API error" }, { status: 502 })
+      const errText = await res.text().catch(() => "")
+      console.error("Overpass error:", res.status, errText)
+      return NextResponse.json({ error: `Overpass API error: ${res.status}` }, { status: 502 })
     }
 
     const data = await res.json()
 
-    const hospitals = (data.elements || [])
+    if (!data.elements || data.elements.length === 0) {
+      return NextResponse.json([])
+    }
+
+    const hospitals = data.elements
       .filter((el: Record<string, unknown>) => el.tags)
       .map((el: Record<string, unknown>) => {
         const tags = el.tags as Record<string, string>
-        const lat2 = el.type === "way" ? (el.center as Record<string, number>)?.lat || lat : el.lat as number
-        const lng2 = el.type === "way" ? (el.center as Record<string, number>)?.lon || lng : el.lon as number
+        const lat2 = el.type === "way" ? (el.center as Record<string, number>)?.lat || lat : (el.lat as number)
+        const lng2 = el.type === "way" ? (el.center as Record<string, number>)?.lon || lng : (el.lon as number)
         const osmType = tags.amenity || tags.healthcare || "hospital"
         return {
           id: `${el.type}-${el.id}`,
-          name: tags.name || `${tags["name:bn"] || ""}` || getTypeName(osmType),
+          name: tags.name || tags["name:bn"] || getTypeName(osmType),
           type: TYPE_LABEL[osmType] || "hospital",
           address: tags["addr:full"] || tags["addr:street"] || `${tags["addr:city"] || ""} ${tags["addr:district"] || ""}`.trim() || "ঠিকানা দেওয়া নেই",
           latitude: lat2,
@@ -76,9 +82,10 @@ export async function GET(req: Request) {
       .slice(0, 50)
 
     return NextResponse.json(hospitals)
-  } catch (error) {
-    console.error("Hospitals error:", error)
-    return NextResponse.json({ error: "Failed to fetch hospitals" }, { status: 500 })
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Unknown error"
+    console.error("Hospitals error:", msg)
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
 
