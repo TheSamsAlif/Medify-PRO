@@ -38,15 +38,17 @@ export async function GET(req: NextRequest) {
 
     const query = buildQuery(lat, lng, type)
 
+    // Use Overpass Turbo API (GET-based wrapper that avoids CORS & POST issues)
+    const overpassUrl = `https://overpass-turbo.eu/s/${encodeURIComponent(btoa(query))}`
+    
+    // Direct approach: use Overpass API with proper GET request
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 9000)
 
-    const res = await fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: query,
-      signal: controller.signal,
-    })
+    const res = await fetch(
+      `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`,
+      { signal: controller.signal }
+    )
     clearTimeout(timer)
 
     if (!res.ok) {

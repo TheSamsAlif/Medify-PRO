@@ -2,28 +2,59 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
 
+// Modular AI Provider - Gemini or OpenRouter
+const GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY || ""
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || ""
+
 const MODELS = [
   "google/gemini-2.0-flash-exp:free",
   "google/gemini-2.0-pro-exp-02-05:free",
   "deepseek/deepseek-chat-v3-0724:free",
   "qwen/qwen-vl-plus:free",
   "cohere/command-r-plus-08-2024:free",
-  "meta-llama/llama-3.2-3b-instruct:free",
-  "google/gemma-2-9b-it:free",
 ]
 
-const SYSTEM_PROMPT = `You are Medify AI, a professional healthcare assistant. You MUST follow these rules strictly:
+const SYSTEM_PROMPT = `You are Medify AI, a professional healthcare assistant for the Medify health app. You MUST follow these rules strictly:
 
-1. Answer in Bengali (Bangla) if the user writes in Bengali, English if they write in English. Detect language automatically.
-2. Always use simple, easy-to-understand language.
-3. You can answer questions about: medicines, diseases, side effects, dosage, food interactions, pregnancy safety, lifestyle, exercise, diet, health reports, medical tests, lab reports, blood tests, X-ray, MRI, CT Scan, Ultrasound, ECG, diabetes, blood pressure, heart disease, kidney disease, liver disease, asthma, cancer, mental health, fever, cold, flu, common illnesses.
-4. When explaining medicines, include: how it works, why prescribed, when to take, common side effects, serious side effects, drug interactions, foods to avoid, storage instructions, missed dose info, overdose info.
-5. If user uploads a prescription or medical report image, explain everything line by line.
-6. NEVER make false claims or diagnose.
-7. ALWAYS end with: "⚠️ এই তথ্য শিক্ষামূলক এবং লাইসেন্সপ্রাপ্ত ডাক্তারের পরামর্শের বিকল্প নয়।"
-8. Be helpful, empathetic, and professional.
-9. Keep responses concise but informative.
-10. For emergency situations, immediately advise calling 999 or going to the nearest hospital.`
+1. LANGUAGE: The user may write in Bengali (বংলা), English, or Banglish (Bangla written in English letters like "amar bhab kemon ache", "thanda lagche", "dard hocche"). ALWAYS reply in the SAME language the user used. If they write in Banglish, reply in Banglish. If they write in Bengali, reply in Bengali. If they write in English, reply in English.
+
+2. SCOPE: You ONLY answer healthcare-related questions. These include: medicines, diseases, symptoms, dosage, side effects, food interactions, pregnancy safety, lifestyle, exercise, diet, health reports, medical tests, lab reports, blood tests, X-ray, MRI, CT Scan, Ultrasound, ECG, diabetes, blood pressure, heart disease, kidney disease, liver disease, asthma, cancer, mental health, fever, cold, flu, common illnesses, first aid, emergency care, hospital information, vaccination, health tips.
+
+3. IF ASKED ABOUT NON-HEALTHCARE TOPICS (programming, politics, sports, movies, general knowledge, etc.), reply exactly: "I can only assist with Medify healthcare features and health-related guidance."
+
+4. NEVER make false claims or diagnose. Always advise consulting a licensed doctor.
+
+5. ALWAYS end with: "⚠️ এই তথ্য শিক্ষামূলক এবং লাইসেন্সপ্রাপ্ত ডাক্তারের পরামর্শের বিকল্প নয়।"
+
+6. Be helpful, empathetic, and professional. Keep responses concise but informative.`
+
+async function callOpenRouter(messages: Record<string, string>[]) {
+  if (!OPENROUTER_API_KEY) return null
+
+  for (const model of MODELS) {
+    try {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": process.env.AUTH_URL || "http://localhost:3000",
+          "X-Title": "Medify AI Healthcare",
+        },
+        body: JSON.stringify({ model, messages, max_tokens: 1024, temperature: 0.7 }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        const content = data.choices?.[0]?.message?.content
+        if (content) return content
+      }
+    } catch (err) {
+      console.warn(`Model ${model} error:`, err)
+    }
+  }
+  return null
+}
 
 export async function POST(req: Request) {
   try {
@@ -37,13 +68,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 })
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY
-    if (!apiKey) {
-      return NextResponse.json({
-        response: "⚠️ স্বাগতম! আমি Medify AI সহায়ক। আমার সাথে ওষুধ, রোগ, ডায়েট, লাইফস্টাইল নিয়ে কথা বলুন। আমি বাংলা ও ইংরেজি দুটো ভাষাতেই উত্তর দিতে পারি।\n\n⚠️ এই তথ্য শিক্ষামূলক এবং লাইসেন্সপ্রাপ্ত ডাক্তারের পরামর্শের বিকল্প নয়।",
-      })
-    }
-
+    // Get conversation history
     const recentHistory = await prisma.chatMessage.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
@@ -56,61 +81,40 @@ export async function POST(req: Request) {
 
     let response = ""
 
-    for (const model of MODELS) {
+    // Try OpenRouter (has Gemini models built-in)
+    if (OPENROUTER_API_KEY) {
       try {
-        const res = await fetch(
-          "https://openrouter.ai/api/v1/chat/completions",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              "Content-Type": "application/json",
-              "HTTP-Referer": process.env.AUTH_URL || "http://localhost:3000",
-              "X-Title": "Medify AI Healthcare",
-            },
-            body: JSON.stringify({
-              model,
-              messages: [
-                { role: "system", content: SYSTEM_PROMPT },
-                ...conversationHistory,
-                { role: "user", content: message },
-              ],
-              max_tokens: 1024,
-              temperature: 0.7,
-            }),
-          }
-        )
-
-        if (res.ok) {
-          const data = await res.json()
-          response = data.choices?.[0]?.message?.content || ""
-          if (response) break
-        } else {
-          console.warn(`Model ${model} failed, trying next...`)
-          continue
-        }
+        response = await callOpenRouter([
+          { role: "system", content: SYSTEM_PROMPT },
+          ...conversationHistory,
+          { role: "user", content: message },
+        ])
       } catch (err) {
-        console.warn(`Model ${model} error:`, err)
-        continue
+        console.error("OpenRouter error:", err)
       }
     }
 
     if (!response) {
-      response = "দুঃখিত, আমি এখন উত্তর দিতে পারছি না। অনুগ্রহ করে আবার চেষ্টা করুন।"
+      response = "দুঃখিত, AI সার্ভিস এখন কনফিগার করা নই। অনুগ্রহ করে পরে আবার চেষ্টা করুন।"
     }
 
-    await prisma.chatMessage.createMany({
-      data: [
-        { userId: session.user.id, role: "user", content: message },
-        { userId: session.user.id, role: "assistant", content: response },
-      ],
-    })
+    // Save to DB
+    try {
+      await prisma.chatMessage.createMany({
+        data: [
+          { userId: session.user.id, role: "user", content: message },
+          { userId: session.user.id, role: "assistant", content: response },
+        ],
+      })
+    } catch (dbErr) {
+      console.error("DB save error:", dbErr)
+    }
 
     return NextResponse.json({ response })
   } catch (error) {
     console.error("Chat error:", error)
     return NextResponse.json({
-      response: "⚠️ টেকনিক্যাল সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।\n\n⚠️ এই তথ্য শিক্ষামূলক এবং লাইসেন্সপ্রাপ্ত ডাক্তারের পরামর্শের বিকল্প নয়।",
+      response: "টেকনিক্যাল সমস্যা হযেছে। অনুরোধ করি আবার চেষ্টা করুন।\n\n⚠️ এই তথ্য শিক্ষামূলক এবং লাইসেন্সপ্রাপ্ত ডাক্তারের পরামর্শের বিকল্প নয়।",
     })
   }
 }
