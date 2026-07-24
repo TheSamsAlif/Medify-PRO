@@ -1,33 +1,21 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
-import {
-  Bot,
-  Send,
-  User,
-  Mic,
-  Square,
-  Trash2,
-  Sparkles,
-  Heart,
-  Stethoscope,
-  Pill,
-  AlertTriangle,
-  Loader2,
-} from "lucide-react"
+import { Send, Mic, Bot, User, Loader2, Trash2, Sparkles, Square } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import type { ChatMessage } from "@/types"
 
 const suggestions = [
-  { icon: Pill, text: "Napa Extra 500mg কি কাজ করে?" },
-  { icon: Stethoscope, text: "ডায়াবেটিস রোগীর খাদ্য তালিকা" },
-  { icon: Heart, text: "উচ্চ রক্তচাপের ওষুধের পার্শ্বপ্রতিক্রিয়া" },
-  { icon: AlertTriangle, text: "ওষুধ খেতে ভুলে গেলে কী করব?" },
+  { text: "Napa Extra 500mg কি কাজ করে?" },
+  { text: "ডায়াবেটিস রোগীর খাদ্য তালিকা" },
+  { text: "উচ্চ রক্তচাপের ওষুধের পার্শ্বপ্রতিক্রিয়া" },
+  { text: "ওষুধ খেতে ভুলে গেলে কী করব?" },
 ]
 
 export default function AssistantPage() {
@@ -36,6 +24,7 @@ export default function AssistantPage() {
   const [loading, setLoading] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     fetchHistory()
@@ -71,6 +60,7 @@ export default function AssistantPage() {
     }
 
     setMessages(prev => [...prev, userMsg])
+    const currentInput = input
     setInput("")
     setLoading(true)
 
@@ -78,7 +68,7 @@ export default function AssistantPage() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: currentInput }),
       })
 
       if (res.ok) {
@@ -91,6 +81,8 @@ export default function AssistantPage() {
           createdAt: new Date().toISOString(),
         }
         setMessages(prev => [...prev, assistantMsg])
+      } else if (res.status === 401) {
+        toast.error("লগইন প্রয়োজন")
       } else {
         toast.error("AI রেসপন্স পেতে সমস্যা হয়েছে")
       }
@@ -138,6 +130,7 @@ export default function AssistantPage() {
       transition={{ duration: 0.3 }}
       className="h-[calc(100vh-8rem)] flex flex-col"
     >
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-[#F96801]/30">
@@ -145,9 +138,7 @@ export default function AssistantPage() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[#EFF2F2]">AI স্বাস্থ্য সহায়ক</h2>
-            <p className="text-sm text-[#A5ABB0]">
-              আপনার ব্যক্তিগত AI মেডিকেল অ্যাসিস্ট্যান্ট
-            </p>
+            <p className="text-sm text-[#A5ABB0]">আপনার ব্যক্তিগত AI মেডিকেল অ্যাসিস্ট্যান্ট</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -163,6 +154,7 @@ export default function AssistantPage() {
         </div>
       </div>
 
+      {/* Chat Area */}
       <Card className="flex-1 flex flex-col border border-white/[.08] bg-[#0a0d16] backdrop-blur-xl overflow-hidden">
         <ScrollArea ref={scrollRef} className="flex-1 p-4 md:p-6">
           {messages.length === 0 ? (
@@ -173,7 +165,7 @@ export default function AssistantPage() {
               <h3 className="text-xl font-bold text-[#EFF2F2] mb-2">আমি Medify AI</h3>
               <p className="text-[#A5ABB0] max-w-md mb-8">
                 আমি আপনার ব্যক্তিগত স্বাস্থ্যসেবা সহায়ক। ওষুধ, রোগ, ডায়েট, লাইফস্টাইল — সব বিষয়ে 
-                বাংলা বা ইংরেজিতে জিজ্ঞাসা করুন, আমি উত্তর দেব।
+                বাংলা, ইংরেজি বা বাংলিশ (Banglish) এ জিজ্ঞাসা করুন, আমি উত্তর দেব।
               </p>
               <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
                 {suggestions.map((s, i) => (
@@ -183,7 +175,7 @@ export default function AssistantPage() {
                     className="flex items-start gap-3 p-4 rounded-2xl bg-white/[.04] border border-white/[.08] hover:border-[#F96801]/30 transition-all text-left"
                   >
                     <div className="w-8 h-8 rounded-lg bg-[#F96801]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <s.icon className="w-4 h-4 text-[#F96801]" />
+                      <Bot className="w-4 h-4 text-[#F96801]" />
                     </div>
                     <p className="text-sm text-[#EFF2F2]">{s.text}</p>
                   </button>
@@ -203,18 +195,18 @@ export default function AssistantPage() {
                   className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {msg.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 mt-1 shadow-lg shadow-[#F96801]/20">
+                    <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 mt-1">
                       <Bot className="w-4 h-4 text-[#160500]" />
                     </div>
                   )}
                   <div
-                    className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+                    className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 ${
                       msg.role === "user"
                         ? "bg-gradient-to-br from-[#F96801] to-[#FF8A1E] text-[#160500] rounded-tr-sm"
                         : "bg-white/[.06] border border-white/[.08] text-[#EFF2F2] rounded-tl-sm"
                     }`}
                   >
-                    {msg.content}
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                   </div>
                   {msg.role === "user" && (
                     <div className="w-8 h-8 rounded-xl bg-[#F96801]/20 flex items-center justify-center flex-shrink-0 mt-1">
@@ -229,7 +221,7 @@ export default function AssistantPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex gap-3"
                 >
-                  <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#F96801]/20">
+                  <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
                     <Bot className="w-4 h-4 text-[#160500]" />
                   </div>
                   <div className="bg-white/[.06] border border-white/[.08] rounded-2xl rounded-tl-sm px-4 py-3">
@@ -244,10 +236,12 @@ export default function AssistantPage() {
           )}
         </ScrollArea>
 
+        {/* Input Area */}
         <div className="border-t border-white/[.08] p-4 bg-[#0a0d16]">
           <div className="flex items-end gap-2">
             <div className="flex-1 relative">
               <textarea
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -273,7 +267,7 @@ export default function AssistantPage() {
             <Button
               onClick={handleSend}
               disabled={!input.trim() || loading}
-              className="rounded-full w-11 h-11 flex-shrink-0 gradient-primary text-[#160500] shadow-lg shadow-[#F96801]/20 btn-shine"
+              className="rounded-full w-11 h-11 flex-shrink-0 gradient-primary text-[#160500] shadow-lg shadow-[#F96801]/20 disabled:opacity-50 disabled:cursor-not-allowed btn-shine"
             >
               <Send className="w-5 h-5" />
             </Button>

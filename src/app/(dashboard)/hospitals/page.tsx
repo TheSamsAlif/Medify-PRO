@@ -18,7 +18,7 @@ const Marker = dynamic(() => import("react-leaflet").then(m => m.Marker), { ssr:
 const Popup = dynamic(() => import("react-leaflet").then(m => m.Popup), { ssr: false })
 import "leaflet/dist/leaflet.css"
 
-const defaultCenter: [number, number] = [23.8103, 90.4125] // Dhaka
+const defaultCenter: [number, number] = [23.8103, 90.4125]
 
 const typeColors: Record<string, string> = {
   hospital: "#F96801",
@@ -115,66 +115,21 @@ export default function HospitalsPage() {
     setLoading(true)
     setError("")
     try {
-      if (!lat || !lng) {
-        lat = defaultCenter[0]
-        lng = defaultCenter[1]
-      }
-
-      // Call our server-side API route which proxies to Overpass
       const params = new URLSearchParams()
-      params.set("lat", lat.toString())
-      params.set("lng", lng.toString())
+      if (lat && lng) { params.set("lat", lat.toString()); params.set("lng", lng.toString()) }
       if (filter !== "all") params.set("type", filter)
       const res = await fetch(`/api/hospitals?${params}`)
-      const data = await res.json()
-
-      if (!res.ok || data.error) {
-        // Fallback: call Overpass directly from browser
-        const type = filter !== "all" ? filter : "all"
-        const around = `(around:5000,${lat},${lng})`
-        let filters = ""
-        if (type === "pharmacy") {
-          filters = `node["amenity"="pharmacy"]${around};`
-        } else if (type === "diagnostic") {
-          filters = `node["healthcare"="doctor"]${around};`
-        } else if (type === "hospital") {
-          filters = `node["amenity"="hospital"]${around};way["amenity"="hospital"]${around};node["amenity"="clinic"]${around};`
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data)) {
+          setHospitals(data)
+          if (data.length === 0) setError("এই এলাকায় কোনো হাসপাতাল পাওয়া যায়নি। অন্য এলাকা সার্চ করুন।")
         } else {
-          filters = `node["amenity"="hospital"]${around};node["amenity"="clinic"]${around};node["amenity"="pharmacy"]${around};node["healthcare"="doctor"]${around};way["amenity"="hospital"]${around};`
+          setError(data.error || "ডাটা লোড করতে সমস্যা হয়েছে")
         }
-        const query = `[out:json][timeout:8];(${filters});out center 20;`
-
-        const res2 = await fetch("https://overpass-api.de/api/interpreter", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({ data: query }).toString(),
-        })
-
-        if (!res2.ok) {
-          setError(`API error: ${res2.status}`)
-          setLoading(false)
-          return
-        }
-
-        const data2 = await res2.json()
-        if (!data2.elements?.length) {
-          setError("এই এলাকায় কোনো হাসপাতাল পাওয়া যায়নি। অন্য এলাকা সার্চ করুন।")
-          setHospitals([])
-          setLoading(false)
-          return
-        }
-
-        const hospitals = parseOverpass(data2, lat, lng)
-        setHospitals(hospitals)
-        setLoading(false)
-        return
-      }
-
-      if (Array.isArray(data)) {
-        setHospitals(data)
-        if (data.length === 0) setError("এই এলাকায় কোনো হাসপাতাল পাওয়া যায়নি। অন্য এলাকা সার্চ করুন।")
       } else {
-        setError(data.error || "ডাটা লোড করতে সমস্যা হয়েছে")
+        const errData = await res.json().catch(() => ({}))
+        setError(errData.error || `API Error: ${res.status}`)
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "নেটওয়ার্ক ত্রুটি"
@@ -182,46 +137,6 @@ export default function HospitalsPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const parseOverpass = (data: { elements?: Record<string, unknown>[] }, lat: number, lng: number) => {
-    const typeLabel: Record<string, string> = { hospital: "hospital", clinic: "hospital", pharmacy: "pharmacy", doctor: "diagnostic" }
-    const elements = data.elements || []
-    return elements
-      .filter((el) => {
-        const tags = (el as Record<string, unknown>).tags
-        return tags && typeof tags === "object"
-      })
-      .map((el) => {
-        const t = (el as Record<string, Record<string, string>>).tags || {}
-        const lat2 = (el as Record<string, unknown>).type === "way" ? (((el as Record<string, unknown>).center as Record<string, number>)?.lat ?? lat) : (el as Record<string, number>).lat
-        const lng2 = (el as Record<string, unknown>).type === "way" ? (((el as Record<string, unknown>).center as Record<string, number>)?.lon ?? lng) : (el as Record<string, number>).lon
-        const ot = t.amenity || t.healthcare || "hospital"
-        return {
-          id: `${(el as Record<string, string>).type}-${(el as Record<string, number>).id}`,
-          name: t.name || t["name:bn"] || (ot === "hospital" ? "হাসপাতাল" : ot === "pharmacy" ? "ফার্মেসী" : ot === "clinic" ? "ক্লিনিক" : "ডাক্তার"),
-          type: typeLabel[ot] || "hospital",
-          address: t["addr:full"] || t["addr:street"] || t["addr:city"] || "",
-          city: t["addr:city"] || "",
-          state: t["addr:state"] || "",
-          email: null,
-          website: t.website || null,
-          latitude: lat2,
-          longitude: lng2,
-          phone: t.phone || t["contact:phone"] || null,
-          rating: null,
-          emergency: ot === "hospital",
-          ambulance: t.ambulance === "yes",
-          bloodBank: false,
-          diagnostic: ot === "doctor",
-          specialties: [ot],
-          openingHours: t.opening_hours || null,
-          imageUrl: null,
-          distance: calcDist(lat, lng, lat2, lng2),
-        }
-      })
-      .sort((a: { distance: number }, b: { distance: number }) => a.distance - b.distance)
-      .slice(0, 50)
   }
 
   useEffect(() => {
@@ -246,7 +161,6 @@ export default function HospitalsPage() {
           setEta(`${mins} মিনিট`)
         }
       } catch {
-        // OSRM may be rate limited, use straight-line estimate
         const dist = calcDist(userLocation[0], userLocation[1], hospital.latitude, hospital.longitude)
         setRouteDist(`${dist.toFixed(1)} কিমি`)
         setEta(`${Math.round(dist * 3)} মিনিট`)
@@ -283,7 +197,6 @@ export default function HospitalsPage() {
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4">
-      {/* Left Panel */}
       <div className="lg:w-[420px] xl:w-[480px] flex flex-col gap-4 overflow-hidden">
         <div>
           <h2 className="text-xl font-bold text-[#EFF2F2]">নিকটস্থ হাসপাতাল</h2>
@@ -303,7 +216,7 @@ export default function HospitalsPage() {
           </div>
           <Button onClick={() => fetchHospitals(userLocation?.[0], userLocation?.[1])} disabled={loading}
             className="h-10 px-3 rounded-xl glass text-[#A5ABB0] hover:text-[#EFF2F2]">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Button onClick={toggleTracking}
             className={`h-10 w-10 p-0 rounded-xl ${tracking ? "bg-[#F96801] text-[#160500]" : "glass text-[#A5ABB0]"}`}>
@@ -392,7 +305,6 @@ export default function HospitalsPage() {
         </div>
       </div>
 
-      {/* Right Panel - Map */}
       <div className="flex-1 rounded-2xl overflow-hidden glass-border-gradient min-h-[400px] relative">
         <MapContainer
           center={userLocation || defaultCenter}
@@ -447,7 +359,6 @@ export default function HospitalsPage() {
           ))}
         </MapContainer>
 
-        {/* ETA Bar */}
         {routeDist && (
           <div className="absolute bottom-4 left-4 right-4 z-[999]">
             <Card className="bg-[#0a0d16]/90 backdrop-blur-xl border border-[#25C2C3]/30">

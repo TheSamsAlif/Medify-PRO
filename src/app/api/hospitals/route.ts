@@ -6,13 +6,13 @@ function buildQuery(lat: number, lng: number, type: string): string {
   let filters = ""
 
   if (type === "pharmacy") {
-    filters = `node(around:5000,${lat},${lng})["amenity"="pharmacy"];`
+    filters = `node["amenity"="pharmacy"]${around};`
   } else if (type === "diagnostic") {
-    filters = `node(around:5000,${lat},${lng})["healthcare"="doctor"];`
+    filters = `node["healthcare"="doctor"]${around};`
   } else if (type === "hospital") {
-    filters = `node(around:5000,${lat},${lng})["amenity"="hospital"];way(around:5000,${lat},${lng})["amenity"="hospital"];node(around:5000,${lat},${lng})["amenity"="clinic"];`
+    filters = `node["amenity"="hospital"]${around};way["amenity"="hospital"]${around};node["amenity"="clinic"]${around};`
   } else {
-    filters = `node(around:5000,${lat},${lng})["amenity"="hospital"];node(around:5000,${lat},${lng})["amenity"="clinic"];node(around:5000,${lat},${lng})["amenity"="pharmacy"];node(around:5000,${lat},${lng})["healthcare"="doctor"];way(around:5000,${lat},${lng})["amenity"="hospital"];`
+    filters = `node["amenity"="hospital"]${around};node["amenity"="clinic"]${around};node["amenity"="pharmacy"]${around};node["healthcare"="doctor"]${around};way["amenity"="hospital"]${around};`
   }
 
   return `[out:json][timeout:8];(${filters});out center 20;`
@@ -38,14 +38,13 @@ export async function GET(req: NextRequest) {
 
     const query = buildQuery(lat, lng, type)
 
-    // Use POST with proper form encoding
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 9000)
 
     const res = await fetch("https://overpass-api.de/api/interpreter", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ data: query }).toString(),
+      body: "data=" + encodeURIComponent(query),
       signal: controller.signal,
     })
     clearTimeout(timer)
