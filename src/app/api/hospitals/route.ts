@@ -95,14 +95,21 @@ export async function GET(req: NextRequest) {
               name: t.name || t["name:bn"] || unknownName(ot),
               type: TYPE_LABEL[ot] || "hospital",
               address: t["addr:full"] || t["addr:street"] || t["addr:city"] || t["addr:district"] || "",
+              city: t["addr:city"] || t["addr:district"] || "",
+              state: t["addr:state"] || "",
               latitude: el.lat as number,
               longitude: el.lon as number,
               phone: t.phone || t["contact:phone"] || null,
+              email: t.email || t["contact:email"] || null,
+              website: t.website || t["contact:website"] || null,
               rating: null,
               emergency: ot === "hospital" || ot === "clinic",
               ambulance: t.ambulance === "yes",
               bloodBank: false,
+              diagnostic: ot === "doctors" || ot === "centre",
               specialties: [ot],
+              openingHours: t["opening_hours"] || null,
+              imageUrl: null,
               distance: calcDist(lat, lng, el.lat as number, el.lon as number),
             }
           })
@@ -113,15 +120,29 @@ export async function GET(req: NextRequest) {
     }
 
     if (!hospitals.length) {
-      const close = FALLBACK_HOSPITALS.map(h => ({
-        ...h,
-        distance: calcDist(lat, lng, h.lat, h.lng),
-        emergency: h.type === "hospital",
-        rating: null, ambulance: false, bloodBank: false,
-        specialties: [h.type],
+      const close = FALLBACK_HOSPITALS.map((h, i) => ({
+        id: `fallback-${i}`,
+        name: h.name,
+        type: h.type,
         address: "",
-      })).sort((a, b) => a.distance - b.distance).slice(0, 10) as unknown as Record<string, unknown>[]
-      hospitals = close
+        city: "Dhaka",
+        state: "Dhaka",
+        phone: h.phone,
+        email: null,
+        website: null,
+        latitude: h.lat,
+        longitude: h.lng,
+        rating: null,
+        emergency: h.type === "hospital",
+        ambulance: false,
+        bloodBank: false,
+        diagnostic: h.type === "diagnostic",
+        specialties: [h.type],
+        openingHours: null,
+        imageUrl: null,
+        distance: calcDist(lat, lng, h.lat, h.lng),
+      })).sort((a, b) => a.distance - b.distance).slice(0, 10)
+      hospitals = close as unknown as Record<string, unknown>[]
     }
 
     console.log(`[Hospitals] Returning ${hospitals.length} results (${Date.now() - start}ms)`)
