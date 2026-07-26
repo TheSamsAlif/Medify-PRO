@@ -84,19 +84,35 @@ export default function ProfilePage() {
     e.preventDefault()
     setSaving(true)
     try {
+      const payload: Record<string, any> = {}
+      if (form.name) payload.name = form.name
+      if (form.phone) payload.phone = form.phone
+      if (form.age) payload.age = parseInt(form.age)
+      if (form.gender) payload.gender = form.gender
+      if (form.bloodGroup) payload.bloodGroup = form.bloodGroup
+      if (form.address) payload.address = form.address
+
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
+      const data = await res.json()
       if (res.ok) {
-        const data = await res.json()
         setProfile(prev => ({ ...prev, ...data.user }))
-        toast.success("প্রোফাইল আপডেট সফল হয়েছে")
+        setForm({
+          name: data.user.name || "",
+          phone: data.user.phone || "",
+          age: data.user.age?.toString() || "",
+          gender: data.user.gender || "",
+          bloodGroup: data.user.bloodGroup || "",
+          address: data.user.address || "",
+        })
+        toast.success("প্রোফাইল সফলভাবে আপডেট হয়েছে")
         setEditOpen(false)
         update({ name: form.name })
       } else {
-        toast.error("প্রোফাইল আপডেট করতে সমস্যা হয়েছে")
+        toast.error(data.error || "প্রোফাইল আপডেট করতে সমস্যা হয়েছে")
       }
     } catch {
       toast.error("নেটওয়ার্ক ত্রুটি")

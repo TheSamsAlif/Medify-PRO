@@ -1,35 +1,54 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
+import { z } from "zod"
+
+const genderValues = ["MALE", "FEMALE", "OTHER"] as const
+
+const updateSchema = z.object({
+  name: z.string().min(1, "নাম দেওয়া আবশ্যক").optional(),
+  phone: z.string().optional(),
+  age: z.coerce.number().int().min(0, "বয়স ০-এর কম হতে পারে না").max(150, "বয়স ১৫০-এর বেশি হতে পারে না").optional(),
+  gender: z.enum(genderValues).optional(),
+  bloodGroup: z.string().optional(),
+  address: z.string().optional(),
+  image: z.string().optional(),
+})
 
 export async function GET() {
   try {
     const session = await auth()
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "লগইন প্রয়োজন" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: {
-        patients: true,
-        guardians: true,
-      },
+      include: { patients: true },
     })
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+      return NextResponse.json({ error: "ব্যবহারকারী পাওয়া যায়নি" }, { status: 404 })
     }
 
     const patientId = `PAT-${user.id.slice(-6).toUpperCase()}`
 
     return NextResponse.json({
-      ...user,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      age: user.age,
+      gender: user.gender,
+      bloodGroup: user.bloodGroup,
+      address: user.address,
+      image: user.image,
+      role: user.role,
       patientId,
     })
   } catch (error) {
     console.error("Profile fetch error:", error)
-    return NextResponse.json({ error: "Internal error" }, { status: 500 })
+    return NextResponse.json({ error: "প্রোফাইল লোড করতে সমস্যা হয়েছে" }, { status: 500 })
   }
 }
 
@@ -37,31 +56,69 @@ export async function PUT(req: Request) {
   try {
     const session = await auth()
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "লগইন প্রয়োজন" }, { status: 401 })
     }
 
     const body = await req.json()
-    const { name, phone, age, gender, bloodGroup, address, image } = body
+
+    const result = updateSchema.safeParse(body)
+    if (!result.success) {
+      const firstError = result.error.issues[0]
+      const fieldName = firstError.path.join(".")
+      const message = firstError.message
+      return NextResponse.json(
+        { error: `${fieldName}: ${message}` },
+        { status: 400 }
+      )
+    }
+
+    const { name, phone, age, gender, bloodGroup, address, image } = result.data
+
+    const data: Record<string, any> = {}
+    if (name !== undefined) data.name = name
+    if (phone !== undefined) data.phone = phone || null
+    if (age !== undefined) data.age = age
+    if (gender !== undefined) data.gender = gender
+    if (bloodGroup !== undefined) data.bloodGroup = bloodGroup || null
+    if (address !== undefined) data.address = address || null
+    if (image !== undefined) data.image = image || null
 
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
-      data: {
-        name: name !== undefined ? name : undefined,
-        phone: phone !== undefined ? phone : undefined,
-        age: age !== undefined ? parseInt(age) || null : undefined,
-        gender: gender !== undefined ? gender : undefined,
-        bloodGroup: bloodGroup !== undefined ? bloodGroup : undefined,
-        address: address !== undefined ? address : undefined,
-        image: image !== undefined ? image : undefined,
-      },
+      data,
     })
 
     return NextResponse.json({
-      message: "প্রোফাইল আপডেট সফল হয়েছে",
-      user: updatedUser,
+      message: "প্রোফাইল সফলভাবে আপডেট হয়েছে",
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        age: updatedUser.age,
+        gender: updatedUser.gender,
+        bloodGroup: updatedUser.bloodGroup,
+        address: updatedUser.address,
+        image: updatedUser.image,
+      },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Profile update error:", error)
-    return NextResponse.json({ error: "প্রোফাইল আপডেট করতে সমস্যা হয়েছে" }, { status: 500 })
+    if (error?.code === "P2002") {
+      return NextResponse.json(
+        { error: "এই ফোন নম্বর বা ইমেইল ইতিমধ্যে ব্যবহৃত হচ্ছে" },
+        { status: 409 }
+      )
+    }
+    if (error?.code === "P2025") {
+      return NextResponse.json(
+        { error: "ব্যবহারকারী পাওয়া যায়নি" },
+        { status: 404 }
+      )
+    }
+    return NextResponse.json(
+      { error: `সার্ভার ত্রুটি: ${error?.message || "অজানা ত্রুটি"}` },
+      { status: 500 }
+    )
   }
 }
