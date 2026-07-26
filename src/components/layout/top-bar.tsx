@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
 import { Bell, Search, Menu, Loader2, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,6 @@ import { toast } from "sonner"
 export function TopBar() {
   const { data: session } = useSession()
   const pathname = usePathname()
-  const router = useRouter()
   const [notifications, setNotifications] = useState<any[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifLoading, setNotifLoading] = useState(false)
@@ -150,7 +149,6 @@ export function TopBar() {
                   <DropdownMenuItem
                     key={n.id}
                     className={`focus:bg-white/[.06] cursor-default ${!n.read ? "bg-white/[.03]" : ""}`}
-                    onPointerLeave={(e) => e.preventDefault()}
                   >
                     <div className="flex items-start gap-3 py-1 w-full">
                       <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.read ? "bg-[#2B3856]" : "bg-[#F96801]"}`} />
@@ -171,15 +169,13 @@ export function TopBar() {
             </DropdownMenuContent>
           </DropdownMenu>
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant="ghost" size="icon" className="rounded-full w-9 h-9 ml-1">
+            <DropdownMenuTrigger className="rounded-full w-9 h-9 ml-1 flex items-center justify-center outline-none">
                 <Avatar className="w-8 h-8 ring-2 ring-[#F96801]/30">
                   <AvatarImage src={session?.user?.image || ""} />
                   <AvatarFallback className="bg-[#F96801]/20 text-[#F96801] text-xs font-medium">
                     {session?.user?.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
-              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2]">
               <DropdownMenuLabel>

@@ -62,6 +62,7 @@ export async function POST(req: Request) {
 
     let response = ""
     let usedModel = ""
+    let lastError = ""
 
     for (const model of MODELS) {
       try {
@@ -94,15 +95,19 @@ export async function POST(req: Request) {
           }
         } else {
           const err = await res.json().catch(() => ({}))
-          console.warn(`[Chat] Model ${model} failed:`, err.error?.message || res.status)
+          lastError = err.error?.message || res.statusText
+          console.warn(`[Chat] Model ${model} failed:`, lastError)
         }
       } catch (err) {
-        console.warn(`[Chat] Model ${model} network error:`, err instanceof Error ? err.message : err)
+        const msg = err instanceof Error ? err.message : String(err)
+        lastError = msg
+        console.warn(`[Chat] Model ${model} network error:`, msg)
       }
     }
 
     if (!response) {
-      response = "দুঃখিত, AI সার্ভার এখন উপলব্ধ নেই। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।"
+      console.error(`[Chat] All models failed. Last error: ${lastError}. Key set: ${!!apiKey}`)
+      response = "দুঃখিত, AI সার্ভার এখন উপলব্ধ নেই। OpenRouter API কী সঠিক আছে কিনা যাচাই করুন।"
     }
 
     // Save to DB (best-effort)
