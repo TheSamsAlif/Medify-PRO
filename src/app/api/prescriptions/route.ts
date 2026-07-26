@@ -51,6 +51,58 @@ export async function POST(req: Request) {
       },
     })
 
+    // Handle medicines if provided
+    const medicinesRaw = formData.get("medicines") as string
+    if (medicinesRaw) {
+      let meds: any[] = []
+      try {
+        meds = JSON.parse(medicinesRaw)
+      } catch {
+        // ignore parsing errors
+      }
+      const now = new Date()
+      // Helper to map foodInstruction to intakeTime enum
+      const mapIntake = (instr: string) => {
+        const lower = instr?.toLowerCase() ?? ""
+        if (lower.includes("before")) return "BEFORE_MEAL"
+        if (lower.includes("after")) return "AFTER_MEAL"
+        if (lower.includes("with")) return "WITH_MEAL"
+        if (lower.includes("empty")) return "EMPTY_STOMACH"
+        return "ANYTIME"
+      }
+      // Helper to parse dose string like "1+0+1+0" into booleans
+      const parseDose = (doseStr: string) => {
+        const parts = doseStr?.split("+") ?? []
+        return {
+          morning: parts[0] === "1",
+          noon: parts[1] === "1",
+          evening: parts[2] === "1",
+          night: parts[3] === "1",
+        }
+      }
+      const medicineCreates = meds.map(m => {
+        const { morning, noon, evening, night } = parseDose(m.dose)
+        return {
+          userId: session.user.id,
+          name: m.name ?? "",
+          dosage: `${m.strength ?? ""} ${m.form ?? ""}`.trim(),
+          frequency: m.dose ?? "",
+          intakeTime: mapIntake(m.foodInstruction) as any,
+          morning,
+          noon,
+          evening,
+          night,
+          startDate: now,
+          duration: m.durationDays ?? null,
+          durationUnit: "days",
+          prescriptionId: prescription.id,
+          reminderEnabled: true,
+        }
+      })
+      // Insert medicines
+      await prisma.medicine.createMany({ data: medicineCreates })
+    }
+
     return NextResponse.json(prescription, { status: 201 })
   } catch (error) {
     console.error("Prescription create error:", error)

@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" })
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", role: "PATIENT" })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,6 +67,31 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label className="text-[#A5ABB0]">আপনি কী হিসেবে যোগ দিতে চান?</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: "PATIENT", label: "রোগী", icon: "🩺" },
+                    { value: "GUARDIAN", label: "অভিভাবক", icon: "👨‍👩‍👧‍👦" },
+                    { value: "DOCTOR", label: "ডাক্তার", icon: "👨‍⚕️" },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, role: opt.value })}
+                      className={`p-3 rounded-xl border text-center transition-all ${
+                        form.role === opt.value
+                          ? "border-[#F96801] bg-[#F96801]/10 text-[#F96801]"
+                          : "border-white/[.08] bg-white/[.04] text-[#A5ABB0] hover:border-white/[.15]"
+                      }`}
+                    >
+                      <span className="text-lg block mb-1">{opt.icon}</span>
+                      <span className="text-xs font-medium">{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-[#A5ABB0]">নাম</Label>
                 <div className="relative">

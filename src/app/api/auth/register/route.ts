@@ -4,11 +4,19 @@ import { prisma } from "@/lib/db/prisma"
 
 export async function POST(req: Request) {
   try {
-    const { name, email, phone, password } = await req.json()
+    const { name, email, phone, password, role } = await req.json()
+    const normalizedRole = (role || "PATIENT").toUpperCase()
 
     if (!email || !password || !name) {
       return NextResponse.json(
         { error: "নাম, ইমেইল ও পাসওয়ার্ড আবশ্যক" },
+        { status: 400 }
+      )
+    }
+
+    if (!["PATIENT", "DOCTOR", "GUARDIAN"].includes(normalizedRole)) {
+      return NextResponse.json(
+        { error: "অবৈধ ব্যবহারকারী ভূমিকা" },
         { status: 400 }
       )
     }
@@ -29,18 +37,21 @@ export async function POST(req: Request) {
         email,
         phone,
         passwordHash,
-        role: "PATIENT",
+        role: normalizedRole as any,
         language: "bn",
-        patients: {
-          create: {},
-        },
+        ...(normalizedRole === "PATIENT" && {
+          patients: { create: {} },
+        }),
+        ...(normalizedRole === "GUARDIAN" && {
+          guardians: { create: {} },
+        }),
       },
     })
 
     return NextResponse.json(
       {
         message: "অ্যাকাউন্ট তৈরি হয়েছে",
-        user: { id: user.id, name: user.name, email: user.email },
+        user: { id: user.id, name: user.name, email: user.email, role: normalizedRole },
       },
       { status: 201 }
     )

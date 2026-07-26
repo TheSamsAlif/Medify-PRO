@@ -187,7 +187,7 @@ export default function AssistantPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="h-[calc(100vh-8rem)] flex flex-col"
+      className="flex-1 flex flex-col"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -217,7 +217,7 @@ export default function AssistantPage() {
         </div>
       </div>
 
-      <Card className="flex-1 flex flex-col border border-white/[.08] bg-[#0a0d16] backdrop-blur-xl overflow-hidden">
+        <Card className="flex-1 flex flex-col border border-white/[.08] bg-[#0a0d16] backdrop-blur-xl overflow-hidden">
         <ScrollArea ref={scrollRef} className="flex-1 p-4 md:p-6">
           {messages.length === 0 && !streamingText ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">

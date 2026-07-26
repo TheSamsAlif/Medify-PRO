@@ -50,6 +50,10 @@ export default function HospitalsPage() {
   const [error, setError] = useState("")
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("all")
+  // Cache for place search results to avoid repeated Nominatim calls
+  const placeCache = useRef<Map<string, [number, number]>>(new Map())
+  // Debounce timer for place search
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null)
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [selected, setSelected] = useState<Hospital | null>(null)
   const [eta, setEta] = useState<string | null>(null)
@@ -174,26 +178,49 @@ export default function HospitalsPage() {
   }
 
   const searchPlace = async (q: string) => {
-    if (!q.trim()) return
+    const query = q.trim();
+    if (!query) return;
+    // Check cache first
+    const cached = placeCache.current.get(query);
+    if (cached) {
+      const loc = cached;
+      setUserLocation(loc);
+      mapRef.current?.panTo(loc);
+      mapRef.current?.setZoom(14);
+      fetchHospitals(loc[0], loc[1]);
+      return;
+    }
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`)
-      const data = await res.json()
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&countrycodes=bd&q=${encodeURIComponent(query)}&limit=1`
+      );
+      const data = await res.json();
       if (data?.[0]) {
-        const loc: [number, number] = [parseFloat(data[0].lat), parseFloat(data[0].lon)]
-        setUserLocation(loc)
-        mapRef.current?.panTo(loc)
-        mapRef.current?.setZoom(14)
-        fetchHospitals(loc[0], loc[1])
+        const loc: [number, number] = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        // Cache result
+        placeCache.current.set(query, loc);
+        setUserLocation(loc);
+        mapRef.current?.panTo(loc);
+        mapRef.current?.setZoom(14);
+        fetchHospitals(loc[0], loc[1]);
+      } else {
+        toast.error("ঠিকানা পাওয়া যায়নি");
       }
     } catch {
-      toast.error("ঠিকানা পাওয়া যায়নি")
+      toast.error("ঠিকানা পাওয়া যায়নি");
     }
   }
 
-  const filtered = hospitals.filter(h =>
-    h.name.toLowerCase().includes(search.toLowerCase()) ||
-    h.address.toLowerCase().includes(search.toLowerCase())
-  )
+  const debouncedSearchPlace = useCallback((q: string) => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    debounceTimer.current = setTimeout(() => {
+      searchPlace(q);
+    }, 400);
+  }, []);
+
+  const displayedHospitals = hospitals;
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4">
@@ -210,7 +237,7 @@ export default function HospitalsPage() {
               placeholder="ঠিকানা সার্চ করুন..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") searchPlace(search) }}
+              onKeyDown={(e) => { if (e.key === "Enter") debouncedSearchPlace(search) }}
               className="pl-9 h-10 text-sm bg-white/[.04] border border-white/[.08] text-[#EFF2F2] placeholder:text-[#A5ABB0] rounded-xl"
             />
           </div>
@@ -243,7 +270,7 @@ export default function HospitalsPage() {
         <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
           {loading ? (
             [1,2,3,4].map(i => <Skeleton key={i} className="h-28 w-full rounded-2xl bg-white/[.04]" />)
-          ) : filtered.length === 0 ? (
+          ) : displayedHospitals.length === 0 ? (
             <div className="text-center py-12">
               <MapPin className="w-12 h-12 text-[#2B3856] mx-auto mb-3" />
               <p className="text-[#A5ABB0] text-sm">কোনো হাসপাতাল পাওয়া যায়নি</p>
@@ -252,7 +279,7 @@ export default function HospitalsPage() {
                 <RefreshCw className="w-3 h-3 mr-1" /> আবার চেষ্টা করুন
               </Button>
             </div>
-          ) : filtered.map((h, i) => {
+          ) : displayedHospitals.map((h, i) => {
             const Icon = h.type === "hospital" ? Building : h.type === "diagnostic" ? Flask : Droplets
             const isSelected = selected?.id === h.id
             return (
@@ -323,7 +350,7 @@ export default function HospitalsPage() {
             </Marker>
           )}
 
-          {filtered.map((h) => (
+          {displayedHospitals.map((h) => (
             <Marker
               key={h.id}
               position={[h.latitude, h.longitude]}

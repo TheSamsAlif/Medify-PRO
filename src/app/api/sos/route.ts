@@ -32,22 +32,71 @@ export async function POST(req: Request) {
                 guardian: { include: { user: true } },
               },
             },
+            doctorLinks: {
+              include: {
+                doctor: true,
+              },
+            },
           },
         },
       },
     })
 
+    const mapsLink = latitude && longitude
+      ? `https://www.google.com/maps?q=${latitude},${longitude}`
+      : null
+
+    const patientName = user?.name || "Unknown"
+    const notifyUserIds: string[] = []
+
+    // Notify guardians
+    const guardianEmails: string[] = []
+    for (const g of user?.patients?.[0]?.guardians || []) {
+      const gEmail = g.guardian.user.email
+      if (gEmail) guardianEmails.push(gEmail)
+      if (g.guardian.userId) {
+        notifyUserIds.push(g.guardian.userId)
+        await prisma.notification.create({
+          data: {
+            userId: g.guardian.userId,
+            title: "🚨 SOS অ্যালার্ট!",
+            body: `${patientName} একটি জরুরি SOS পাঠিয়েছেন।${mapsLink ? ` অবস্থান: ${mapsLink}` : ""}`,
+            type: "SOS",
+            data: { alertId: alert.id, latitude, longitude, mapsLink },
+          },
+        })
+      }
+    }
+
+    // Notify doctors
+    const doctorEmails: string[] = []
+    for (const d of user?.patients?.[0]?.doctorLinks || []) {
+      if (d.doctor.email) doctorEmails.push(d.doctor.email)
+      if (d.doctorId) {
+        notifyUserIds.push(d.doctorId)
+        await prisma.notification.create({
+          data: {
+            userId: d.doctorId,
+            title: "🚨 SOS অ্যালার্ট!",
+            body: `আপনার রোগী ${patientName} একটি জরুরি SOS পাঠিয়েছেন।${mapsLink ? ` অবস্থান: ${mapsLink}` : ""}`,
+            type: "SOS",
+            data: { alertId: alert.id, latitude, longitude, mapsLink },
+          },
+        })
+      }
+    }
+
     const emergencyContacts = await prisma.emergencyContact.findMany({
       orderBy: { priority: "asc" },
     })
-
-    const guardianEmails = user?.patients?.[0]?.guardians?.map(g => g.guardian.user.email).filter(Boolean) || []
 
     return NextResponse.json({
       alert,
       notified: {
         guardians: guardianEmails,
+        doctors: doctorEmails,
         emergencyContacts: emergencyContacts.map(c => ({ name: c.name, phone: c.phone, type: c.type })),
+        inAppNotifications: notifyUserIds.length,
       },
       message: "SOS alert sent! Help is on the way.",
     })

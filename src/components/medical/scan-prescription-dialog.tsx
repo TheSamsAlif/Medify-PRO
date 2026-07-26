@@ -29,6 +29,7 @@ export function ScanPrescriptionDialog({ open, onOpenChange, onSuccess }: Props)
     followUpDate: "",
   })
   const [extracted, setExtracted] = useState("")
+  const [medicines, setMedicines] = useState<Array<{ name:string; strength:string; form:string; dose:string; durationDays:number|null; foodInstruction:string }>>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,12 +84,13 @@ export function ScanPrescriptionDialog({ open, onOpenChange, onSuccess }: Props)
       formData.append("notes", form.notes)
       formData.append("advice", form.advice)
       formData.append("followUpDate", form.followUpDate)
-      formData.append("extractedText", extracted)
+        formData.append("extractedText", extracted)
+        formData.append("medicines", JSON.stringify(medicines))
       const res = await fetch("/api/prescriptions", { method: "POST", body: formData })
       if (res.ok) {
         toast.success("প্রেসক্রিপশন সংরক্ষণ করা হয়েছে")
         onSuccess()
-        setFile(null); setPreview(null); setExtracted("")
+          setFile(null); setPreview(null); setExtracted(""); setMedicines([])
         setForm({ doctorName: "", hospitalName: "", diagnosis: "", notes: "", advice: "", followUpDate: "" })
       } else {
         toast.error("সংরক্ষণ করতে সমস্যা হয়েছে")
@@ -154,6 +156,50 @@ export function ScanPrescriptionDialog({ open, onOpenChange, onSuccess }: Props)
               <p className="text-sm text-[#A5ABB0] whitespace-pre-wrap leading-relaxed">{extracted}</p>
             </div>
           )}
+
+          {/* Medicines List */}
+          {medicines.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <h3 className="text-sm font-medium text-[#25C2C3] mb-2">সনাক্তকৃত ওষুধ</h3>
+              {medicines.map((med, idx) => (
+                <div key={idx} className="grid grid-cols-2 gap-2 p-2 rounded-xl bg-[#040406] border border-white/[.08]">
+                  <Input placeholder="নাম" value={med.name} onChange={e => {
+                    const newMeds = [...medicines]
+                    newMeds[idx].name = e.target.value
+                    setMedicines(newMeds)
+                  }} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] placeholder-[#A5ABB0]" />
+                  <Input placeholder="শক্তি" value={med.strength} onChange={e => {
+                    const newMeds = [...medicines]
+                    newMeds[idx].strength = e.target.value
+                    setMedicines(newMeds)
+                  }} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] placeholder-[#A5ABB0]" />
+                  <Input placeholder="রূপ" value={med.form} onChange={e => {
+                    const newMeds = [...medicines]
+                    newMeds[idx].form = e.target.value
+                    setMedicines(newMeds)
+                  }} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] placeholder-[#A5ABB0]" />
+                  <Input placeholder="ডোজ (১+০+১)" value={med.dose} onChange={e => {
+                    const newMeds = [...medicines]
+                    newMeds[idx].dose = e.target.value
+                    setMedicines(newMeds)
+                  }} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] placeholder-[#A5ABB0]" />
+                  <Input placeholder="দিন সংখ্যা" type="number" value={med.durationDays ?? ""} onChange={e => {
+                    const newMeds = [...medicines]
+                    newMeds[idx].durationDays = e.target.value ? Number(e.target.value) : null
+                    setMedicines(newMeds)
+                  }} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] placeholder-[#A5ABB0]" />
+                  <Input placeholder="খাবার নির্দেশনা" value={med.foodInstruction} onChange={e => {
+                    const newMeds = [...medicines]
+                    newMeds[idx].foodInstruction = e.target.value
+                    setMedicines(newMeds)
+                  }} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] placeholder-[#A5ABB0]" />
+                  <Button variant="outline" size="sm" onClick={() => setMedicines(medicines.filter((_, i) => i !== idx))}>মুছুন</Button>
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={() => setMedicines([...medicines, { name: "", strength: "", form: "", dose: "", durationDays: null, foodInstruction: "" }])}>ওষুধ যোগ করুন</Button>
+            </div>
+          )}
+
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
