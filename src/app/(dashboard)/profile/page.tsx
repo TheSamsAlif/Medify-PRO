@@ -209,7 +209,7 @@ export default function ProfilePage() {
 
         <Button
           variant="outline"
-          onClick={() => signOut()}
+          onClick={() => signOut({ callbackUrl: "/auth/login" })}
           className="w-full rounded-xl py-6 text-red-400 border-red-500/20 hover:bg-red-500/10 bg-transparent"
         >
           <LogOut className="w-5 h-5 mr-2" />

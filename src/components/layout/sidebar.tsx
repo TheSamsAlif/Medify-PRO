@@ -117,7 +117,7 @@ export function Sidebar() {
         </div>
         <Button
           variant="ghost"
-          onClick={() => signOut()}
+          onClick={() => signOut({ callbackUrl: "/auth/login" })}
           className={cn(
             "text-[#A5ABB0] hover:text-[#f87171] hover:bg-white/[.04] mt-1",
             collapsed ? "w-full justify-center" : "w-full justify-start gap-3"

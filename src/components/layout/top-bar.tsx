@@ -196,7 +196,7 @@ export function TopBar() {
                 <a href="/dashboard" className="block w-full">ড্যাশবোর্ড</a>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/[.06]" />
-              <DropdownMenuItem className="text-[#f87171] focus:bg-[#f87171]/12" onClick={() => signOut()}>
+              <DropdownMenuItem className="text-[#f87171] focus:bg-[#f87171]/12" onClick={() => signOut({ callbackUrl: "/auth/login" })}>
                 সাইন আউট
               </DropdownMenuItem>
             </DropdownMenuContent>
