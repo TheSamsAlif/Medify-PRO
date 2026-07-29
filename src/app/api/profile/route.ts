@@ -13,6 +13,9 @@ const updateSchema = z.object({
   bloodGroup: z.string().optional(),
   address: z.string().optional(),
   image: z.string().optional(),
+  registrationNumber: z.string().optional(),
+  isAvailable: z.boolean().optional(),
+  chamberLocation: z.string().optional(),
 })
 
 export async function GET() {
@@ -33,6 +36,8 @@ export async function GET() {
 
     const patientId = `PAT-${user.id.slice(-6).toUpperCase()}`
 
+    const doctorId = user.role === "DOCTOR" ? `DOC-${user.id.slice(-6).toUpperCase()}` : null
+
     return NextResponse.json({
       id: user.id,
       name: user.name,
@@ -45,6 +50,10 @@ export async function GET() {
       image: user.image,
       role: user.role,
       patientId,
+      doctorId,
+      registrationNumber: user.registrationNumber,
+      isAvailable: user.isAvailable,
+      chamberLocation: user.chamberLocation,
     })
   } catch (error) {
     console.error("Profile fetch error:", error)
@@ -72,7 +81,7 @@ export async function PUT(req: Request) {
       )
     }
 
-    const { name, phone, age, gender, bloodGroup, address, image } = result.data
+    const { name, phone, age, gender, bloodGroup, address, image, registrationNumber, isAvailable, chamberLocation } = result.data
 
     const data: Record<string, any> = {}
     if (name !== undefined) data.name = name
@@ -82,6 +91,9 @@ export async function PUT(req: Request) {
     if (bloodGroup !== undefined) data.bloodGroup = bloodGroup || null
     if (address !== undefined) data.address = address || null
     if (image !== undefined) data.image = image || null
+    if (registrationNumber !== undefined) data.registrationNumber = registrationNumber || null
+    if (isAvailable !== undefined) data.isAvailable = isAvailable
+    if (chamberLocation !== undefined) data.chamberLocation = chamberLocation || null
 
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },

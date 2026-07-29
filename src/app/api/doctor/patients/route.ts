@@ -14,7 +14,12 @@ export async function GET() {
       include: {
         patient: {
           include: {
-            user: true,
+            user: {
+              include: {
+                medicines: true,
+                medicineLogs: { take: 20, orderBy: { takenAt: "desc" } },
+              },
+            },
           },
         },
       },
@@ -31,6 +36,10 @@ export async function GET() {
       bloodGroup: l.patient.user.bloodGroup,
       address: l.patient.user.address,
       medicalHistory: l.patient.medicalHistory,
+      medicines: l.patient.user.medicines,
+      logs: l.patient.user.medicineLogs,
+      contactRequested: l.contactRequested,
+      contactApproved: l.contactApproved,
       createdAt: l.createdAt,
     }))
 

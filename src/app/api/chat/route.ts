@@ -2,15 +2,6 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/prisma"
 
-const MODELS = [
-  "google/gemini-2.0-flash-001",
-  "google/gemini-2.0-flash-exp:free",
-  "google/gemini-2.0-flash-lite-preview-02-05:free",
-  "google/gemma-2-9b-it:free",
-  "deepseek/deepseek-chat-v3-0724:free",
-  "qwen/qwen-vl-plus:free",
-]
-
 const SYSTEM_PROMPT = `You are Medify AI, a professional healthcare assistant for the Medify health app. You MUST follow these rules strictly:
 
 1. LANGUAGE: The user may write in Bengali (বাংলা), English, or Banglish (Bangla written in English letters like "amar bhab kemon ache"). ALWAYS reply in the SAME language the user used.
@@ -25,6 +16,10 @@ const SYSTEM_PROMPT = `You are Medify AI, a professional healthcare assistant fo
 
 6. Be concise and empathetic. Use bullet points for lists.`
 
+const OLLAMA_API_KEY = "d190bb1923b7495a815748cfc92a468f.Y1kyHCAwO0ZwHM3wQxyErqx5"
+const OLLAMA_MODEL = "gemma4:31b"
+const OLLAMA_URL = "https://api.ollama.com/api/chat"
+
 export async function POST(req: Request) {
   const start = Date.now()
   try {
@@ -38,15 +33,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 })
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY
-    if (!apiKey) {
-      console.warn("[Chat] Missing OPENROUTER_API_KEY")
-      return NextResponse.json({
-        response: "⚠️ Gemini API key is not configured. Please contact the developer.\n\nMedify AI স্বাস্থ্য সহায়ক ব্যবহার করতে API কী সেটআপ প্রয়োজন।",
-      })
-    }
-
-    // Get conversation history
     let conversationHistory: { role: string; content: string }[] = []
     try {
       const history = await prisma.chatMessage.findMany({
@@ -56,61 +42,40 @@ export async function POST(req: Request) {
       })
       conversationHistory = history.reverse().map((m) => ({ role: m.role, content: m.content }))
     } catch {
-      // DB unavailable - continue without history
       console.warn("[Chat] DB unavailable, proceeding without history")
     }
 
+    const res = await fetch(OLLAMA_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OLLAMA_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...conversationHistory,
+          { role: "user", content: message },
+        ],
+        stream: false,
+      }),
+    })
+
     let response = ""
-    let usedModel = ""
-    let lastError = ""
-
-    for (const model of MODELS) {
-      try {
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": process.env.AUTH_URL || "https://medify-pro-zeta.vercel.app",
-            "X-Title": "Medify AI Healthcare",
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: "system", content: SYSTEM_PROMPT },
-              ...conversationHistory,
-              { role: "user", content: message },
-            ],
-            max_tokens: 1024,
-            temperature: 0.7,
-          }),
-        })
-
-        if (res.ok) {
-          const data = await res.json()
-          response = data.choices?.[0]?.message?.content || ""
-          if (response) {
-            usedModel = model
-            break
-          }
-        } else {
-          const err = await res.json().catch(() => ({}))
-          lastError = err.error?.message || res.statusText
-          console.warn(`[Chat] Model ${model} failed:`, lastError)
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err)
-        lastError = msg
-        console.warn(`[Chat] Model ${model} network error:`, msg)
-      }
+    if (res.ok) {
+      const data = await res.json()
+      response = data.message?.content || ""
+    } else {
+      const err = await res.json().catch(() => ({}))
+      console.error("[Chat] Ollama API error:", err)
+      response = "দুঃখিত, AI সার্ভার এখন উপলব্ধ নেই। কিছুক্ষণ পর আবার চেষ্টা করুন।"
     }
 
     if (!response) {
-      console.error(`[Chat] All models failed. Last error: ${lastError}. Key set: ${!!apiKey}`)
-      response = "দুঃখিত, AI সার্ভার এখন উপলব্ধ নেই। OpenRouter API কী সঠিক আছে কিনা যাচাই করুন।"
+      response = "দুঃখিত, AI সার্ভার এখন উপলব্ধ নেই। কিছুক্ষণ পর আবার চেষ্টা করুন।"
     }
 
-    // Save to DB (best-effort)
     try {
       await prisma.chatMessage.createMany({
         data: [
@@ -122,7 +87,7 @@ export async function POST(req: Request) {
       console.warn("[Chat] Failed to save messages to DB")
     }
 
-    console.log(`[Chat] ${usedModel || "none"} responded in ${Date.now() - start}ms`)
+    console.log(`[Chat] ${OLLAMA_MODEL} responded in ${Date.now() - start}ms`)
     return NextResponse.json({ response })
   } catch (error) {
     console.error(`[Chat] Error (${Date.now() - start}ms):`, error)

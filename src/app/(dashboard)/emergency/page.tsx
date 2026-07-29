@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 import { Phone, PhoneCall, AlertTriangle, Ambulance, Shield, Building, FlaskRoundIcon as Flask, Droplets, ChevronRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -18,8 +19,10 @@ const emergencyCategories = [
 ]
 
 export default function EmergencyPage() {
+  const { data: session } = useSession()
   const [contacts, setContacts] = useState<EmergencyContact[]>([])
   const [loading, setLoading] = useState(true)
+  const role = (session?.user?.role as string) || "PATIENT"
 
   useEffect(() => {
     fetchContacts()
@@ -58,12 +61,14 @@ export default function EmergencyPage() {
             ২৪/৭ ইমারজেন্সি কন্টাক্ট ও হেল্পলাইন
           </p>
         </div>
+        {role === "PATIENT" && (
         <Link href="/sos">
           <Button className="rounded-full gradient-danger text-white shadow-lg shadow-red-500/20">
             <AlertTriangle className="w-4 h-4 mr-2" />
             SOS অ্যালার্ট
           </Button>
         </Link>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 mb-8">

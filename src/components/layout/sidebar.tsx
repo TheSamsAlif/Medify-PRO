@@ -21,6 +21,7 @@ import {
   Stethoscope,
   Apple,
   AlertCircle,
+  Clock,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -33,9 +34,11 @@ const navigation = [
   { name: "Prescriptions", nameBn: "প্রেসক্রিপশন", href: "/prescriptions", icon: Scan, roles: ["PATIENT", "DOCTOR"] },
   { name: "AI Assistant", nameBn: "AI সহায়ক", href: "/assistant", icon: Bot, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
   { name: "Health Records", nameBn: "স্বাস্থ্য রেকর্ড", href: "/records", icon: Activity, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
+  { name: "My Doctors", nameBn: "আমার ডাক্তার", href: "/my-doctors", icon: Stethoscope, roles: ["PATIENT"] },
+  { name: "Medicine History", nameBn: "ওষুধের ইতিহাস", href: "/medicine-history", icon: Clock, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
   { name: "Appointments", nameBn: "অ্যাপয়েন্টমেন্ট", href: "/appointments", icon: Calendar, roles: ["PATIENT", "DOCTOR"] },
   { name: "Hospitals", nameBn: "হাসপাতাল", href: "/hospitals", icon: MapPin, roles: ["PATIENT", "GUARDIAN"] },
-  { name: "Drug Interactions", nameBn: "ড্রাগ চেকার", href: "/interactions", icon: AlertCircle, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
+  { name: "Drug Interactions", nameBn: "ড্রাগ চেকার", href: "/interactions", icon: AlertCircle, roles: ["PATIENT", "GUARDIAN"] },
   { name: "Lifestyle", nameBn: "লাইফস্টাইল", href: "/lifestyle", icon: Apple, roles: ["PATIENT", "GUARDIAN"] },
   { name: "Guardian", nameBn: "অভিভাবক", href: "/guardian", icon: Users, roles: ["GUARDIAN"] },
   { name: "Doctor", nameBn: "ডাক্তার", href: "/doctor", icon: Stethoscope, roles: ["DOCTOR"] },

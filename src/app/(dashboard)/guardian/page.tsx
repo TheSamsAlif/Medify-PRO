@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Users, Heart, Pill, Activity, MessageSquare, Phone, Bell, AlertTriangle, CheckCircle2, Plus } from "lucide-react"
+import { Users, Heart, Pill, Activity, MessageSquare, Phone, Bell, AlertTriangle, CheckCircle2, Plus, XCircle, Sunrise, Sun, Sunset, Moon, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -138,15 +138,44 @@ export default function GuardianPage() {
                       {patient.medicines?.length === 0 ? (
                         <p className="text-xs text-[#A5ABB0]/70">কোনো সক্রিয় ওষুধ নেই</p>
                       ) : (
-                        patient.medicines?.slice(0, 3).map((m: any, j: number) => (
-                          <div key={j} className="flex items-center justify-between p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
-                            <div className="flex items-center gap-2">
-                              <Pill className="w-4 h-4 text-[#F96801]" />
-                              <span className="text-sm text-[#EFF2F2]">{m.name} ({m.dosage})</span>
-                            </div>
-                            <Badge className="bg-[#25C2C3]/20 text-[#25C2C3] text-xs">সক্রিয়</Badge>
-                          </div>
-                        ))
+                        <div className="space-y-2">
+                          {patient.medicines?.map((m: any, j: number) => {
+                            const times = []
+                            if (m.morning) times.push({ icon: Sunrise, label: "সকাল" })
+                            if (m.noon) times.push({ icon: Sun, label: "দুপুর" })
+                            if (m.evening) times.push({ icon: Sunset, label: "বিকাল" })
+                            if (m.night) times.push({ icon: Moon, label: "রাত" })
+                            const todayLogs = patient.logs?.filter((l: any) => l.medicineId === m.id && new Date(l.takenAt).toDateString() === new Date().toDateString()) || []
+                            const takenToday = todayLogs.filter((l: any) => l.status === "TAKEN").length
+                            const totalExpected = times.length
+                            return (
+                              <div key={j} className="p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <Pill className="w-4 h-4 text-[#F96801]" />
+                                    <span className="text-sm font-medium text-[#EFF2F2]">{m.name}</span>
+                                    <span className="text-xs text-[#A5ABB0]">({m.dosage})</span>
+                                  </div>
+                                  <Badge className={`text-xs ${totalExpected > 0 && takenToday >= totalExpected ? "bg-[#25C2C3]/20 text-[#25C2C3]" : "bg-[#F96801]/20 text-[#F96801]"}`}>
+                                    {totalExpected > 0 ? `${takenToday}/${totalExpected} খাওয়া` : "সক্রিয়"}
+                                  </Badge>
+                                </div>
+                                <div className="flex gap-2 flex-wrap">
+                                  {times.map((t, ti) => {
+                                    const taken = todayLogs.some((l: any) => l.status === "TAKEN" && l.scheduledTime === t.label)
+                                    return (
+                                      <span key={ti} className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${taken ? "bg-[#25C2C3]/20 text-[#25C2C3]" : "bg-white/[.06] text-[#A5ABB0]"}`}>
+                                        <t.icon className="w-3 h-3" />
+                                        {t.label}
+                                        {taken ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                      </span>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
                       )}
                     </div>
 

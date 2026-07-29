@@ -103,6 +103,12 @@ model User {
   country        String?
   emergencyPhone String?
   language       String     @default("bn")
+  theme          String     @default("dark")
+  registrationNumber String?
+  isAvailable    Boolean    @default(true)
+  chamberLocation String?
+  chamberLatitude  Float?
+  chamberLongitude Float?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
@@ -170,10 +176,12 @@ model GuardianPatient {
 }
 
 model DoctorPatient {
-  id        String   @id @default(cuid())
-  doctorId  String
-  patientId String
-  createdAt DateTime @default(now())
+  id               String   @id @default(cuid())
+  doctorId         String
+  patientId        String
+  contactRequested Boolean  @default(false)
+  contactApproved  Boolean  @default(false)
+  createdAt        DateTime @default(now())
 
   doctor  User    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)

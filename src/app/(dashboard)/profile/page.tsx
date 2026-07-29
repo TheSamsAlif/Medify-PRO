@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useSession } from "next-auth/react"
-import { User, Mail, Phone, Shield, Bell, Moon, Sun, LogOut, ChevronRight, Heart, Languages, Edit3, Loader2, CheckCircle2, MapPin, Calendar, Droplets } from "lucide-react"
+import { User, Mail, Phone, Shield, Bell, Moon, LogOut, ChevronRight, Heart, Languages, Edit3, Loader2, CheckCircle2, MapPin, Calendar, Droplets, Stethoscope, ToggleLeft, ToggleRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -15,11 +15,11 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { signOut } from "next-auth/react"
-import { useTheme } from "next-themes"
+import { ThemeSettings } from "@/components/theme/theme-settings"
+import { useI18n } from "@/lib/i18n"
 
 export default function ProfilePage() {
   const { data: session, update } = useSession()
-  const { theme, setTheme } = useTheme()
   const [profile, setProfile] = useState<{
     name?: string
     email?: string
@@ -37,6 +37,10 @@ export default function ProfilePage() {
   const [editOpen, setEditOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [securityOpen, setSecurityOpen] = useState(false)
+  const [themeOpen, setThemeOpen] = useState(false)
+  const [doctorSettingsOpen, setDoctorSettingsOpen] = useState(false)
+  const { lang, setLang } = useI18n()
+  const [langDialogOpen, setLangDialogOpen] = useState(false)
 
   const [form, setForm] = useState({
     name: "",
@@ -45,6 +49,12 @@ export default function ProfilePage() {
     gender: "",
     bloodGroup: "",
     address: "",
+  })
+
+  const [doctorForm, setDoctorForm] = useState({
+    registrationNumber: "",
+    isAvailable: true,
+    chamberLocation: "",
   })
 
   const [notifications, setNotifications] = useState({
@@ -71,6 +81,11 @@ export default function ProfilePage() {
           gender: data.gender || "",
           bloodGroup: data.bloodGroup || "",
           address: data.address || "",
+        })
+        setDoctorForm({
+          registrationNumber: data.registrationNumber || "",
+          isAvailable: data.isAvailable !== false,
+          chamberLocation: data.chamberLocation || "",
         })
       }
     } catch {
@@ -202,6 +217,22 @@ export default function ProfilePage() {
               </div>
               <ChevronRight className="w-5 h-5 text-[#A5ABB0]" />
             </button>
+
+            {profile?.role === "DOCTOR" && (
+              <button
+                onClick={() => setDoctorSettingsOpen(true)}
+                className="w-full flex items-center gap-3 p-4 rounded-xl hover:bg-white/[.04] transition-colors text-left"
+              >
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                  <Stethoscope className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm text-[#EFF2F2]">ডাক্তার সেটিংস</p>
+                  <p className="text-xs text-[#A5ABB0]">রেজিস্ট্রেশন নম্বর, চেম্বারের অবস্থান, উপলব্ধতা</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#A5ABB0]" />
+              </button>
+            )}
           </CardContent>
         </Card>
 
@@ -210,16 +241,32 @@ export default function ProfilePage() {
             <CardTitle className="text-lg text-[#EFF2F2]">প্রিফারেন্স</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {theme === "dark" ? <Moon className="w-5 h-5 text-[#A5ABB0]" /> : <Sun className="w-5 h-5 text-[#A5ABB0]" />}
-                <div>
-                  <p className="text-sm font-medium text-[#EFF2F2]">ডার্ক মোড</p>
-                  <p className="text-xs text-[#A5ABB0]">অ্যাপের থিম পরিবর্তন করুন</p>
-                </div>
+            <button
+              onClick={() => setThemeOpen(true)}
+              className="w-full flex items-center gap-3 p-4 rounded-xl hover:bg-white/[.04] transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-xl bg-white/[.06] flex items-center justify-center text-[#A5ABB0]">
+                <Moon className="w-5 h-5" />
               </div>
-              <Switch checked={theme === "dark"} onCheckedChange={(v) => setTheme(v ? "dark" : "light")} />
-            </div>
+              <div className="flex-1">
+                <p className="font-medium text-sm text-[#EFF2F2]">অ্যাপের থিম</p>
+                <p className="text-xs text-[#A5ABB0]">ডার্ক / লাইট / সিস্টেম থিম</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-[#A5ABB0]" />
+            </button>
+            <button
+              onClick={() => setLangDialogOpen(true)}
+              className="w-full flex items-center gap-3 p-4 rounded-xl hover:bg-white/[.04] transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-xl bg-white/[.06] flex items-center justify-center text-[#A5ABB0]">
+                <Languages className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-sm text-[#EFF2F2]">ভাষা / Language</p>
+                <p className="text-xs text-[#A5ABB0]">{lang === "bn" ? "বাংলা" : "English"}</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-[#A5ABB0]" />
+            </button>
           </CardContent>
         </Card>
 
@@ -368,6 +415,110 @@ export default function ProfilePage() {
                 ঠিক আছে
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <ThemeSettings open={themeOpen} onOpenChange={setThemeOpen} />
+
+        {/* Doctor Settings Dialog */}
+        <Dialog open={doctorSettingsOpen} onOpenChange={setDoctorSettingsOpen}>
+          <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">ডাক্তার সেটিংস</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              setSaving(true)
+              try {
+                const res = await fetch("/api/profile", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    registrationNumber: doctorForm.registrationNumber,
+                    isAvailable: doctorForm.isAvailable,
+                    chamberLocation: doctorForm.chamberLocation,
+                  }),
+                })
+                if (res.ok) {
+                  toast.success("সেটিংস সংরক্ষিত হয়েছে")
+                  setDoctorSettingsOpen(false)
+                } else {
+                  toast.error("সমস্যা হয়েছে")
+                }
+              } catch {
+                toast.error("নেটওয়ার্ক ত্রুটি")
+              } finally {
+                setSaving(false)
+              }
+            }} className="space-y-4 pt-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-[#A5ABB0]">BM&DC Registration Number (ঐচ্ছিক)</Label>
+                <Input
+                  value={doctorForm.registrationNumber}
+                  onChange={e => setDoctorForm({ ...doctorForm, registrationNumber: e.target.value })}
+                  placeholder="e.g. A-12345"
+                  className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] font-mono"
+                />
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
+                <div>
+                  <p className="text-sm font-medium text-[#EFF2F2]">প্রাপ্তিসাধ্য (Available)</p>
+                  <p className="text-xs text-[#A5ABB0]">রোগীরা আপনার উপলব্ধতা দেখতে পাবেন</p>
+                </div>
+                <Switch checked={doctorForm.isAvailable} onCheckedChange={v => setDoctorForm({ ...doctorForm, isAvailable: v })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-[#A5ABB0]">চেম্বারের অবস্থান (ঐচ্ছিক)</Label>
+                <Input
+                  value={doctorForm.chamberLocation}
+                  onChange={e => setDoctorForm({ ...doctorForm, chamberLocation: e.target.value })}
+                  placeholder="ঠিকানা লিখুন"
+                  className="bg-white/[.04] border-white/[.08] text-[#EFF2F2]"
+                />
+              </div>
+              <DialogFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => setDoctorSettingsOpen(false)} className="border-white/[.08] text-[#A5ABB0]">
+                  বাতিল
+                </Button>
+                <Button type="submit" disabled={saving} className="gradient-primary text-[#160500]">
+                  {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                  সংরক্ষণ করুন
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Language Dialog */}
+        <Dialog open={langDialogOpen} onOpenChange={setLangDialogOpen}>
+          <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">ভাষা / Language</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 pt-2">
+              <button
+                onClick={() => { setLang("bn"); setLangDialogOpen(false) }}
+                className={`w-full flex items-center gap-3 p-4 rounded-xl transition-colors text-left ${lang === "bn" ? "bg-[#F96801]/20 border border-[#F96801]/30" : "hover:bg-white/[.04] border border-transparent"}`}
+              >
+                <span className="text-2xl">🇧🇩</span>
+                <div>
+                  <p className="font-medium text-sm text-[#EFF2F2]">বাংলা</p>
+                  <p className="text-xs text-[#A5ABB0]">Bangla</p>
+                </div>
+                {lang === "bn" && <CheckCircle2 className="w-5 h-5 text-[#F96801] ml-auto" />}
+              </button>
+              <button
+                onClick={() => { setLang("en"); setLangDialogOpen(false) }}
+                className={`w-full flex items-center gap-3 p-4 rounded-xl transition-colors text-left ${lang === "en" ? "bg-[#F96801]/20 border border-[#F96801]/30" : "hover:bg-white/[.04] border border-transparent"}`}
+              >
+                <span className="text-2xl">🇬🇧</span>
+                <div>
+                  <p className="font-medium text-sm text-[#EFF2F2]">English</p>
+                  <p className="text-xs text-[#A5ABB0]">ইংরেজি</p>
+                </div>
+                {lang === "en" && <CheckCircle2 className="w-5 h-5 text-[#F96801] ml-auto" />}
+              </button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

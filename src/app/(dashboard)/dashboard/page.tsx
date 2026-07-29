@@ -23,6 +23,7 @@ import {
   MapPin,
   PhoneCall,
   Plus,
+  Scan,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -33,18 +34,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { DashboardData, Medicine, Appointment } from "@/types"
 
 const quickActions = [
-  { icon: Plus, label: "ওষুধ যোগ", labelEn: "Add Medicine", href: "/medicines?add=true", color: "from-blue-400 to-blue-500" },
-  { icon: Scan, label: "স্ক্যান করুন", labelEn: "Scan Prescription", href: "/prescriptions", color: "from-emerald-400 to-emerald-500" },
-  { icon: Bot, label: "AI সহায়ক", labelEn: "AI Assistant", href: "/assistant", color: "from-purple-400 to-purple-500" },
-  { icon: AlertTriangle, label: "SOS", labelEn: "Emergency", href: "/sos", color: "from-red-400 to-red-500" },
+  { icon: Plus, label: "ওষুধ যোগ", labelEn: "Add Medicine", href: "/medicines?add=true", color: "from-blue-400 to-blue-500", roles: ["PATIENT", "GUARDIAN"] },
+  { icon: Scan, label: "স্ক্যান করুন", labelEn: "Scan Prescription", href: "/prescriptions", color: "from-emerald-400 to-emerald-500", roles: ["PATIENT", "DOCTOR"] },
+  { icon: Bot, label: "AI সহায়ক", labelEn: "AI Assistant", href: "/assistant", color: "from-purple-400 to-purple-500", roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
+  { icon: AlertTriangle, label: "SOS", labelEn: "Emergency", href: "/sos", color: "from-red-400 to-red-500", roles: ["PATIENT"] },
 ]
-
-import { Scan } from "lucide-react"
 
 export default function DashboardPage() {
   const { data: session } = useSession()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const role = (session?.user?.role as string) || "PATIENT"
 
   useEffect(() => {
     fetchDashboard()
@@ -198,7 +198,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {quickActions.map((action, i) => (
+                  {quickActions.filter(a => a.roles.includes(role)).map((action, i) => (
                     <Link key={i} href={action.href}>
                       <div className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer group">
                         <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} p-2.5 shadow-lg group-hover:scale-110 transition-transform`}>
@@ -354,6 +354,7 @@ export default function DashboardPage() {
             </Card>
           </motion.div>
 
+          {role === "PATIENT" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -371,6 +372,7 @@ export default function DashboardPage() {
               </div>
             </Link>
           </motion.div>
+          )}
         </div>
       </div>
     </motion.div>
