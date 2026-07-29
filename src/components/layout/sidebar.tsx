@@ -49,7 +49,6 @@ const navigation = [
   { name: "Profile", nameBn: "প্রোফাইল", href: "/profile", icon: User, roles: ["PATIENT", "GUARDIAN"] },
 
   // Doctor-only navigation
-  { name: "Dashboard", nameBn: "ড্যাশবোর্ড", href: "/dashboard", icon: LayoutDashboard, roles: ["DOCTOR"] },
   { name: "Doctor Patients", nameBn: "রোগী ব্যবস্থাপনা", href: "/doctor/patients", icon: Users, roles: ["DOCTOR"] },
   { name: "Doctor Prescriptions", nameBn: "প্রেসক্রিপশন", href: "/doctor/prescriptions", icon: FileText, roles: ["DOCTOR"] },
   { name: "Doctor Records", nameBn: "স্বাস্থ্য রেকর্ড", href: "/doctor/records", icon: Activity, roles: ["DOCTOR"] },
