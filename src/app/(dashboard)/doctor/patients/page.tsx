@@ -47,7 +47,7 @@ export default function DoctorPatients() {
       ])
       if (detailRes.ok) setPatientDetail(await detailRes.json())
       if (recordsRes.ok) setPatientRecords(await recordsRes.json())
-    } catch { toast.error("ডেটা লোড করতে সমস্যা") } finally { setDetailLoading(false) }
+    } catch { toast.error(t("patients.loadError")) } finally { setDetailLoading(false) }
   }
 
   const handleAddPatient = async (e: React.FormEvent) => {
@@ -56,9 +56,9 @@ export default function DoctorPatients() {
     setAdding(true)
     try {
       const res = await fetch("/api/doctor/patients", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patientId: addPatientId.trim() }) })
-      if (res.ok) { toast.success("রোগী সফলভাবে যুক্ত হয়েছে"); setAddPatientId(""); setAddOpen(false); fetchPatients() }
-      else { const err = await res.json(); toast.error(err.error || "রোগী পাওয়া যায়নি") }
-    } catch { toast.error("ত্রুটি ঘটেছে") } finally { setAdding(false) }
+      if (res.ok) { toast.success(t("doctor.patientAdded")); setAddPatientId(""); setAddOpen(false); fetchPatients() }
+      else { const err = await res.json(); toast.error(err.error || t("patients.patientNotFound")) }
+    } catch { toast.error(t("patients.addError")) } finally { setAdding(false) }
   }
 
   const filtered = patients.filter(p =>
@@ -71,15 +71,15 @@ export default function DoctorPatients() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-[#EFF2F2]">{t("doctor.patientList")}</h2>
-          <p className="text-[#A5ABB0] mt-1">রোগীদের সম্পূর্ণ তথ্য দেখুন</p>
+          <p className="text-[#A5ABB0] mt-1">{t("patients.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <Badge className="text-sm px-4 py-2 bg-white/[.06] text-[#EFF2F2] border-white/[.08]">
             <Users className="w-4 h-4 text-[#F96801] mr-2" />
-            {patients.length} জন
+            {t("patients.count").replace("{n}", String(patients.length))}
           </Badge>
           <Button onClick={() => setAddOpen(true)} className="gradient-primary text-[#160500] rounded-xl text-xs h-9">
-            <Plus className="w-4 h-4 mr-1" /> রোগী যোগ করুন
+            <Plus className="w-4 h-4 mr-1" /> {t("patients.addPatient")}
           </Button>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function DoctorPatients() {
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A5ABB0]" />
         <Input
-          placeholder="নাম, ফোন বা ইমেইল দিয়ে খুঁজুন..."
+          placeholder={t("patients.search")}
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="pl-10 bg-white/[.04] border-white/[.08] text-[#EFF2F2] w-full md:w-96"
@@ -99,7 +99,7 @@ export default function DoctorPatients() {
       ) : filtered.length === 0 ? (
         <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
           <Users className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-          <p className="text-[#A5ABB0] text-sm">{t("doctor.noPatients")}</p>
+          <p className="text-[#A5ABB0] text-sm">{t("patients.noPatients")}</p>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -117,7 +117,7 @@ export default function DoctorPatients() {
                       {patient.gender && <Badge className="bg-white/[.06] text-[#A5ABB0] text-xs">{patient.gender}</Badge>}
                     </div>
                     <p className="text-xs text-[#A5ABB0] mt-0.5">
-                      {patient.age ? `${patient.age} বছর` : ""} {patient.bloodGroup ? `• ${patient.bloodGroup}` : ""} {patient.phone ? `• ${patient.phone}` : ""}
+                      {patient.age ? t("emergency.age").replace("{n}", String(patient.age)) : ""} {patient.bloodGroup ? `• ${patient.bloodGroup}` : ""} {patient.phone ? `• ${patient.phone}` : ""}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -147,67 +147,67 @@ export default function DoctorPatients() {
                   <Avatar className="w-10 h-10 border border-white/[.08]">
                     <AvatarFallback className="bg-[#F96801]/20 text-[#F96801] font-bold">{patientDetail.name?.charAt(0) || "P"}</AvatarFallback>
                   </Avatar>
-                  {patientDetail.name} - রোগীর বিবরণ
+                  {patientDetail.name} - {t("doctor.patientDetails")}
                 </DialogTitle>
               </DialogHeader>
 
               <Tabs defaultValue="info" className="w-full">
                 <TabsList className="bg-white/[.04] border border-white/[.08] p-1 rounded-xl mb-4">
-                  <TabsTrigger value="info" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">তথ্য</TabsTrigger>
-                  <TabsTrigger value="medical" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">মেডিকেল</TabsTrigger>
-                  <TabsTrigger value="prescriptions" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">প্রেসক্রিপশন</TabsTrigger>
-                  <TabsTrigger value="records" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">রেকর্ড</TabsTrigger>
+                  <TabsTrigger value="info" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("patients.tabInfo")}</TabsTrigger>
+                  <TabsTrigger value="medical" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("patients.tabMedical")}</TabsTrigger>
+                  <TabsTrigger value="prescriptions" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("patients.tabPrescriptions")}</TabsTrigger>
+                  <TabsTrigger value="records" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("patients.tabRecords")}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="info" className="space-y-4">
                   <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
-                    <div><span className="text-xs text-[#A5ABB0]">নাম</span><p className="text-[#EFF2F2]">{patientDetail.name}</p></div>
-                    <div><span className="text-xs text-[#A5ABB0]">ইমেইল</span><p className="text-[#EFF2F2]">{patientDetail.email || "নেই"}</p></div>
-                    <div><span className="text-xs text-[#A5ABB0]">ফোন</span><p className="text-[#EFF2F2]">{patientDetail.phone || "নেই"}</p></div>
-                    <div><span className="text-xs text-[#A5ABB0]">জরুরি ফোন</span><p className="text-[#EFF2F2]">{patientDetail.emergencyPhone || "নেই"}</p></div>
-                    <div><span className="text-xs text-[#A5ABB0]">বয়স</span><p className="text-[#EFF2F2]">{patientDetail.age ? `${patientDetail.age} বছর` : "নেই"}</p></div>
-                    <div><span className="text-xs text-[#A5ABB0]">লিঙ্গ</span><p className="text-[#EFF2F2]">{patientDetail.gender || "নেই"}</p></div>
-                    <div><span className="text-xs text-[#A5ABB0]">রক্তের গ্রুপ</span><p className="text-[#EFF2F2]">{patientDetail.bloodGroup || "নেই"}</p></div>
-                    <div><span className="text-xs text-[#A5ABB0]">রক্তের ধরন</span><p className="text-[#EFF2F2]">{patientDetail.bloodType || "নেই"}</p></div>
-                    <div className="col-span-2"><span className="text-xs text-[#A5ABB0]">ঠিকানা</span><p className="text-[#EFF2F2]">{patientDetail.address || "নেই"}</p></div>
+                    <div><span className="text-xs text-[#A5ABB0]">{t("patients.name")}</span><p className="text-[#EFF2F2]">{patientDetail.name}</p></div>
+                    <div><span className="text-xs text-[#A5ABB0]">{t("patients.email")}</span><p className="text-[#EFF2F2]">{patientDetail.email || t("patients.none")}</p></div>
+                    <div><span className="text-xs text-[#A5ABB0]">{t("patients.phone")}</span><p className="text-[#EFF2F2]">{patientDetail.phone || t("patients.none")}</p></div>
+                    <div><span className="text-xs text-[#A5ABB0]">{t("patients.emergencyPhone")}</span><p className="text-[#EFF2F2]">{patientDetail.emergencyPhone || t("patients.none")}</p></div>
+                    <div><span className="text-xs text-[#A5ABB0]">{t("patients.age")}</span><p className="text-[#EFF2F2]">{patientDetail.age ? t("emergency.age").replace("{n}", String(patientDetail.age)) : t("patients.none")}</p></div>
+                    <div><span className="text-xs text-[#A5ABB0]">{t("patients.gender")}</span><p className="text-[#EFF2F2]">{patientDetail.gender || t("patients.none")}</p></div>
+                    <div><span className="text-xs text-[#A5ABB0]">{t("patients.bloodGroup")}</span><p className="text-[#EFF2F2]">{patientDetail.bloodGroup || t("patients.none")}</p></div>
+                    <div><span className="text-xs text-[#A5ABB0]">{t("patients.bloodType")}</span><p className="text-[#EFF2F2]">{patientDetail.bloodType || t("patients.none")}</p></div>
+                    <div className="col-span-2"><span className="text-xs text-[#A5ABB0]">{t("patients.address")}</span><p className="text-[#EFF2F2]">{patientDetail.address || t("patients.none")}</p></div>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="p-3 rounded-xl bg-white/[.04] border border-white/[.08] text-center">
                       <p className="text-lg font-bold text-[#EFF2F2]">{patientDetail.heightCm || "-"}</p>
-                      <p className="text-xs text-[#A5ABB0]">উচ্চতা (cm)</p>
+                      <p className="text-xs text-[#A5ABB0]">{t("patients.height")}</p>
                     </div>
                     <div className="p-3 rounded-xl bg-white/[.04] border border-white/[.08] text-center">
                       <p className="text-lg font-bold text-[#EFF2F2]">{patientDetail.weightKg || "-"}</p>
-                      <p className="text-xs text-[#A5ABB0]">ওজন (kg)</p>
+                      <p className="text-xs text-[#A5ABB0]">{t("patients.weight")}</p>
                     </div>
                     <div className="p-3 rounded-xl bg-white/[.04] border border-white/[.08] text-center">
                       <p className="text-lg font-bold text-[#EFF2F2]">{patientDetail.bmi || "-"}</p>
-                      <p className="text-xs text-[#A5ABB0]">BMI</p>
+                      <p className="text-xs text-[#A5ABB0]">{t("patients.bmi")}</p>
                     </div>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="medical" className="space-y-4">
                   <div>
-                    <p className="font-medium text-[#EFF2F2] mb-2 flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-red-400" /> এলার্জি</p>
+                    <p className="font-medium text-[#EFF2F2] mb-2 flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-red-400" /> {t("patients.allergies")}</p>
                     <div className="flex gap-2 flex-wrap">
                       {patientDetail.allergies?.length > 0 ? patientDetail.allergies.map((a: string, i: number) => (
                         <Badge key={i} className="bg-red-500/20 text-red-400 text-xs">{a}</Badge>
-                      )) : <p className="text-xs text-[#A5ABB0]">কোনো এলার্জি নেই</p>}
+                      )) : <p className="text-xs text-[#A5ABB0]">{t("patients.noAllergies")}</p>}
                     </div>
                   </div>
                   <div>
-                    <p className="font-medium text-[#EFF2F2] mb-2 flex items-center gap-2"><Heart className="w-4 h-4 text-amber-400" /> দীর্ঘমেয়াদী রোগ</p>
+                    <p className="font-medium text-[#EFF2F2] mb-2 flex items-center gap-2"><Heart className="w-4 h-4 text-amber-400" /> {t("patients.chronicConditions")}</p>
                     <div className="flex gap-2 flex-wrap">
                       {patientDetail.chronicConditions?.length > 0 ? patientDetail.chronicConditions.map((c: string, i: number) => (
                         <Badge key={i} className="bg-amber-500/20 text-amber-400 text-xs">{c}</Badge>
-                      )) : <p className="text-xs text-[#A5ABB0]">কোনো দীর্ঘমেয়াদী রোগ নেই</p>}
+                      )) : <p className="text-xs text-[#A5ABB0]">{t("patients.noChronic")}</p>}
                     </div>
                   </div>
                   <div>
-                    <p className="font-medium text-[#EFF2F2] mb-2">জরুরি যোগাযোগ</p>
+                    <p className="font-medium text-[#EFF2F2] mb-2">{t("patients.emergencyContact")}</p>
                     <div className="p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
-                      <p className="text-[#EFF2F2]">{patientDetail.emergencyContact || "নেই"}</p>
+                      <p className="text-[#EFF2F2]">{patientDetail.emergencyContact || t("patients.none")}</p>
                       <p className="text-xs text-[#A5ABB0]">{patientDetail.emergencyRelation || ""}</p>
                     </div>
                   </div>
@@ -222,7 +222,7 @@ export default function DoctorPatients() {
                             <p className="text-xs text-[#A5ABB0]">{new Date(p.createdAt).toLocaleDateString("bn-BD")}</p>
                             {p.diagnosis && <p className="text-sm font-medium text-[#EFF2F2] mt-1">{p.diagnosis}</p>}
                           </div>
-                          <Badge className="bg-[#25C2C3]/20 text-[#25C2C3] text-xs">{p.medicines?.length || 0}টি ওষুধ</Badge>
+                          <Badge className="bg-[#25C2C3]/20 text-[#25C2C3] text-xs">{t("patients.prescriptionCount").replace("{n}", String(p.medicines?.length || 0))}</Badge>
                         </div>
                         {p.medicines?.map((m: any, mi: number) => (
                           <div key={mi} className="flex items-center gap-2 text-xs text-[#A5ABB0] bg-white/[.04] p-1.5 rounded-lg mt-1">
@@ -233,7 +233,7 @@ export default function DoctorPatients() {
                         ))}
                       </CardContent>
                     </Card>
-                  )) : <p className="text-[#A5ABB0] text-sm text-center py-4">কোনো প্রেসক্রিপশন নেই</p>}
+                  )) : <p className="text-[#A5ABB0] text-sm text-center py-4">{t("patients.noPrescriptions")}</p>}
                 </TabsContent>
 
                 <TabsContent value="records" className="space-y-3">
@@ -250,11 +250,11 @@ export default function DoctorPatients() {
                         {r.value && <Badge className="bg-white/[.06] text-[#A5ABB0] text-xs">{r.value} {r.unit}</Badge>}
                       </CardContent>
                     </Card>
-                  )) : <p className="text-[#A5ABB0] text-sm text-center py-4">কোনো রেকর্ড নেই</p>}
+                  )) : <p className="text-[#A5ABB0] text-sm text-center py-4">{t("patients.noRecords")}</p>}
 
                   {patientRecords?.healthMetrics?.length > 0 && (
                     <div>
-                      <p className="font-medium text-[#EFF2F2] mb-2 mt-4">ভাইটাল সিগনস</p>
+                      <p className="font-medium text-[#EFF2F2] mb-2 mt-4">{t("patients.vitalSigns")}</p>
                       {patientRecords.healthMetrics.slice(0, 10).map((m: any, i: number) => (
                         <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-white/[.04] mb-1">
                           <span className="text-xs text-[#A5ABB0]">{m.type}</span>
@@ -270,12 +270,12 @@ export default function DoctorPatients() {
               <div className="flex gap-2 mt-4">
                 {patientDetail.phone && (
                   <a href={`tel:${patientDetail.phone}`} className="flex-1">
-                    <Button className="gradient-primary text-[#160500] w-full rounded-xl text-xs"><Phone className="w-4 h-4 mr-1" /> কল করুন</Button>
+                    <Button className="gradient-primary text-[#160500] w-full rounded-xl text-xs"><Phone className="w-4 h-4 mr-1" /> {t("patients.call")}</Button>
                   </a>
                 )}
                 <Link href={`/doctor/prescriptions?patientId=${selectedPatient?.patientId}`} className="flex-1">
                   <Button variant="outline" className="border-white/[.08] text-[#A5ABB0] w-full rounded-xl text-xs">
-                    <Pill className="w-4 h-4 mr-1" /> প্রেসক্রিপশন
+                    <Pill className="w-4 h-4 mr-1" /> {t("patients.prescription")}
                   </Button>
                 </Link>
               </div>
@@ -287,18 +287,18 @@ export default function DoctorPatients() {
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">রোগী যোগ করুন</DialogTitle>
+            <DialogTitle className="text-xl font-bold">{t("patients.addDialogTitle")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddPatient} className="space-y-4 pt-2">
             <div className="space-y-2">
-              <label className="text-xs text-[#A5ABB0]">Patient ID (যেমন: PAT-2355)</label>
-              <Input placeholder="PAT-..." value={addPatientId} onChange={e => setAddPatientId(e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] uppercase font-mono" />
+              <label className="text-xs text-[#A5ABB0]">{t("patients.patientIdLabel")}</label>
+              <Input placeholder={t("patients.patientIdLabel")} value={addPatientId} onChange={e => setAddPatientId(e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] uppercase font-mono" />
             </div>
             <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={() => setAddOpen(false)} className="border-white/[.08] text-[#A5ABB0]">বাতিল</Button>
+              <Button type="button" variant="outline" onClick={() => setAddOpen(false)} className="border-white/[.08] text-[#A5ABB0]">{t("patients.cancel")}</Button>
               <Button type="submit" disabled={adding} className="gradient-primary text-[#160500]">
                 {adding && <span className="inline-block w-4 h-4 border-2 border-[#160500] border-t-transparent rounded-full animate-spin mr-2" />}
-                যোগ করুন
+                {t("patients.add")}
               </Button>
             </DialogFooter>
           </form>

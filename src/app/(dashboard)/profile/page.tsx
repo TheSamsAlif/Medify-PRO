@@ -503,7 +503,7 @@ export default function ProfilePage() {
                 <span className="text-2xl">🇧🇩</span>
                 <div>
                   <p className="font-medium text-sm text-[#EFF2F2]">{t("profile.bangla")}</p>
-                  <p className="text-xs text-[#A5ABB0]">Bangla</p>
+                  <p className="text-xs text-[#A5ABB0]">{t("language.bangla")}</p>
                 </div>
                 {lang === "bn" && <CheckCircle2 className="w-5 h-5 text-[#F96801] ml-auto" />}
               </button>
@@ -514,7 +514,7 @@ export default function ProfilePage() {
                 <span className="text-2xl">🇬🇧</span>
                 <div>
                   <p className="font-medium text-sm text-[#EFF2F2]">{t("profile.english")}</p>
-                  <p className="text-xs text-[#A5ABB0]">ইংরেজি</p>
+                  <p className="text-xs text-[#A5ABB0]">{t("language.english")}</p>
                 </div>
                 {lang === "en" && <CheckCircle2 className="w-5 h-5 text-[#F96801] ml-auto" />}
               </button>

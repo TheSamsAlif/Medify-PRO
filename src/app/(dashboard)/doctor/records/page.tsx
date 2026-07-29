@@ -29,16 +29,16 @@ export default function DoctorRecords() {
   useEffect(() => {
     if (selectedPatientId) {
       setDataLoading(true)
-      fetch(`/api/doctor/patients/${selectedPatientId}/records`).then(r => r.ok && r.json()).then(d => setRecords(d)).catch(() => toast.error("ডেটা লোড করতে সমস্যা")).finally(() => setDataLoading(false))
+      fetch(`/api/doctor/patients/${selectedPatientId}/records`).then(r => r.ok && r.json()).then(d => setRecords(d)).catch(() => toast.error(t("records.loadError"))).finally(() => setDataLoading(false))
     }
   }, [selectedPatientId])
 
   const recordTypes = [
-    { key: "ALL", label: "সব", icon: FileText },
-    { key: "LAB", label: "ব্লাড টেস্ট", icon: TestTube },
-    { key: "RADIOLOGY", label: "এক্স-রে / MRI / CT", icon: Microscope },
-    { key: "VITAL", label: "ভাইটাল", icon: Heart },
-    { key: "ECG", label: "ECG", icon: Activity },
+    { key: "ALL", labelKey: "records.all", icon: FileText },
+    { key: "LAB", labelKey: "records.lab", icon: TestTube },
+    { key: "RADIOLOGY", labelKey: "records.radiology", icon: Microscope },
+    { key: "VITAL", labelKey: "records.vital", icon: Heart },
+    { key: "ECG", labelKey: "records.ecg", icon: Activity },
   ]
 
   const groupedRecords = (type: string) => {
@@ -51,13 +51,13 @@ export default function DoctorRecords() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-[#EFF2F2]">{t("doctor.healthRecords")}</h2>
-          <p className="text-[#A5ABB0] mt-1">রোগীর সম্পূর্ণ স্বাস্থ্য ইতিহাস</p>
+          <p className="text-[#A5ABB0] mt-1">{t("records.subtitle")}</p>
         </div>
       </div>
 
       <Select value={selectedPatientId} onValueChange={(v) => v !== null && setSelectedPatientId(v)}>
         <SelectTrigger className="w-64 bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs mb-6">
-          <SelectValue placeholder="রোগী নির্বাচন করুন" />
+          <SelectValue placeholder={t("records.selectPatient")} />
         </SelectTrigger>
         <SelectContent className="bg-[#0a0d16] border-white/[.08] text-[#EFF2F2]">
           {patients.map(p => <SelectItem key={p.patientId} value={p.patientId}>{p.name}</SelectItem>)}
@@ -67,7 +67,7 @@ export default function DoctorRecords() {
       {!selectedPatientId ? (
         <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
           <Activity className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-          <p className="text-[#A5ABB0] text-sm">রোগী নির্বাচন করে স্বাস্থ্য রেকর্ড দেখুন</p>
+          <p className="text-[#A5ABB0] text-sm">{t("records.selectPatient")}</p>
         </Card>
       ) : dataLoading ? (
         <div className="space-y-2">{[1,2,3,4].map(i => <Skeleton key={i} className="h-20 w-full rounded-xl bg-white/[.04]" />)}</div>
@@ -76,7 +76,7 @@ export default function DoctorRecords() {
           <TabsList className="bg-white/[.04] border border-white/[.08] p-1 rounded-xl mb-6 flex-wrap">
             {recordTypes.map(rt => (
               <TabsTrigger key={rt.key} value={rt.key} className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">
-                <rt.icon className="w-3.5 h-3.5 mr-1" /> {rt.label}
+                <rt.icon className="w-3.5 h-3.5 mr-1" /> {t(rt.labelKey)}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -86,7 +86,7 @@ export default function DoctorRecords() {
               {groupedRecords(rt.key).length === 0 ? (
                 <Card className="border border-white/[.08] bg-[#0a0d16] p-8 text-center">
                   <FileText className="w-10 h-10 text-[#A5ABB0] mx-auto mb-2 opacity-50" />
-                  <p className="text-[#A5ABB0] text-sm">কোনো {rt.label} রেকর্ড নেই</p>
+                  <p className="text-[#A5ABB0] text-sm">{t("records.noRecords")}</p>
                 </Card>
               ) : (
                 <div className="grid md:grid-cols-2 gap-3">
@@ -117,7 +117,7 @@ export default function DoctorRecords() {
           {records.healthMetrics?.length > 0 && (
             <Card className="border border-white/[.08] bg-[#0a0d16] mt-6">
               <CardHeader>
-                <CardTitle className="text-lg text-[#EFF2F2] flex items-center gap-2"><Heart className="w-5 h-5 text-[#F96801]" /> ভাইটাল সিগনস টাইমলাইন</CardTitle>
+                <CardTitle className="text-lg text-[#EFF2F2] flex items-center gap-2"><Heart className="w-5 h-5 text-[#F96801]" /> {t("records.vitalTimeline")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-1">
                 {records.healthMetrics.slice(0, 20).map((m: any, i: number) => (
@@ -137,7 +137,7 @@ export default function DoctorRecords() {
       ) : (
         <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
           <Activity className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-          <p className="text-[#A5ABB0] text-sm">কোনো স্বাস্থ্য রেকর্ড নেই</p>
+          <p className="text-[#A5ABB0] text-sm">{t("records.noRecords")}</p>
         </Card>
       )}
     </motion.div>

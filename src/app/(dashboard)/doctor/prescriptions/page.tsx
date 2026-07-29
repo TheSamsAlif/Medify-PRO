@@ -72,8 +72,8 @@ export default function DoctorPrescriptions() {
   }
 
   const handleSubmit = async (isDraft: boolean) => {
-    if (!form.patientId) { toast.error("রোগী নির্বাচন করুন"); return }
-    if (!isDraft && form.medicines.filter(m => m.name.trim()).length === 0) { toast.error("কমপক্ষে একটি ওষুধ দিন"); return }
+    if (!form.patientId) { toast.error(t("doctor.selectPatientReq")); return }
+    if (!isDraft && form.medicines.filter(m => m.name.trim()).length === 0) { toast.error(t("doctor.minMedicineReq")); return }
     setLoading(true)
     try {
       const res = await fetch("/api/doctor/prescriptions", {
@@ -82,11 +82,11 @@ export default function DoctorPrescriptions() {
         body: JSON.stringify({ ...form, isDraft, patientId: form.patientId, medicines: form.medicines.filter(m => m.name.trim()) }),
       })
       if (res.ok) {
-        toast.success(isDraft ? "ড্রাফট সংরক্ষিত হয়েছে" : "প্রেসক্রিপশন তৈরি হয়েছে")
+        toast.success(isDraft ? t("doctor.draftSaved") : t("doctor.prescriptionCreated"))
         setForm({ patientId: form.patientId, diagnosis: "", symptoms: "", notes: "", advice: "", bloodPressure: "", temperature: "", patientWeight: "", followUpDate: "", hospitalName: "", signature: "", isDraft: false, medicines: [] })
         fetch(`/api/doctor/prescriptions?patientId=${form.patientId}`).then(r => r.ok && r.json()).then(d => setPrescriptions(d))
-      } else { const err = await res.json(); toast.error(err.error || "ত্রুটি") }
-    } catch { toast.error("ত্রুটি") } finally { setLoading(false) }
+      } else { const err = await res.json(); toast.error(err.error || t("common.error")) }
+    } catch { toast.error(t("common.error")) } finally { setLoading(false) }
   }
 
   const handlePrint = (prescription: any) => {
@@ -122,21 +122,21 @@ export default function DoctorPrescriptions() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-[#EFF2F2]">{t("doctor.prescriptions")}</h2>
-          <p className="text-[#A5ABB0] mt-1">প্রেসক্রিপশন তৈরি, সংরক্ষণ ও প্রিন্ট করুন</p>
+          <p className="text-[#A5ABB0] mt-1">{t("doctor.managePrescriptions")}</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-white/[.04] border border-white/[.08] p-1 rounded-xl mb-6">
-          <TabsTrigger value="list" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">প্রেসক্রিপশন তালিকা</TabsTrigger>
+          <TabsTrigger value="list" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("doctor.prescriptions")}</TabsTrigger>
           <TabsTrigger value="create" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("doctor.addPrescription")}</TabsTrigger>
-          <TabsTrigger value="drafts" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">ড্রাফট</TabsTrigger>
+          <TabsTrigger value="drafts" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("doctor.draft")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="list">
           <Select value={selectedPatientId} onValueChange={(v) => v !== null && setSelectedPatientId(v)}>
             <SelectTrigger className="w-64 bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs mb-4">
-              <SelectValue placeholder="রোগী নির্বাচন করুন" />
+              <SelectValue placeholder={t("doctor.selectPatientHint")} />
             </SelectTrigger>
             <SelectContent className="bg-[#0a0d16] border-white/[.08] text-[#EFF2F2]">
               {patients.map(p => <SelectItem key={p.patientId} value={p.patientId}>{p.name}</SelectItem>)}
@@ -148,12 +148,12 @@ export default function DoctorPrescriptions() {
           ) : !selectedPatientId ? (
             <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
               <Pill className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-              <p className="text-[#A5ABB0] text-sm">রোগী নির্বাচন করে প্রেসক্রিপশন দেখুন</p>
+              <p className="text-[#A5ABB0] text-sm">{t("doctor.selectPatientView")}</p>
             </Card>
           ) : prescriptions.length === 0 ? (
             <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
               <Pill className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-              <p className="text-[#A5ABB0] text-sm mb-4">কোনো প্রেসক্রিপশন নেই</p>
+              <p className="text-[#A5ABB0] text-sm mb-4">{t("doctor.noPrescriptions")}</p>
               <Button onClick={() => setActiveTab("create")} className="gradient-primary text-[#160500] rounded-xl text-xs"><Plus className="w-4 h-4 mr-1" /> {t("doctor.addPrescription")}</Button>
             </Card>
           ) : (
@@ -168,11 +168,11 @@ export default function DoctorPrescriptions() {
                           {p.hospitalName && <Badge className="bg-white/[.06] text-[#A5ABB0] text-xs">{p.hospitalName}</Badge>}
                         </div>
                         {p.diagnosis && <p className="text-sm font-medium text-[#EFF2F2]">{p.diagnosis}</p>}
-                        {p.symptoms && <p className="text-xs text-[#A5ABB0] mt-0.5">লক্ষণ: {p.symptoms}</p>}
-                        {(p.bloodPressure || p.temperature) && <p className="text-xs text-[#A5ABB0]">BP: {p.bloodPressure || "-"} | Temp: {p.temperature || "-"}</p>}
+                        {p.symptoms && <p className="text-xs text-[#A5ABB0] mt-0.5">{t("doctor.symptomsLabel").replace("{s}", p.symptoms)}</p>}
+                        {(p.bloodPressure || p.temperature) && <p className="text-xs text-[#A5ABB0]">{t("doctor.bpLabel").replace("{bp}", p.bloodPressure || "-").replace("{t}", p.temperature || "-")}</p>}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-[#25C2C3]/20 text-[#25C2C3] text-xs">{p.medicines?.length || 0}টি</Badge>
+                        <Badge className="bg-[#25C2C3]/20 text-[#25C2C3] text-xs">{t("patients.prescriptionCount").replace("{n}", String(p.medicines?.length || 0))}</Badge>
                         <Button variant="outline" size="sm" onClick={() => handlePrint(p)} className="rounded-xl text-xs border-white/[.08] text-[#A5ABB0] h-8 w-8 p-0"><Printer className="w-4 h-4" /></Button>
                       </div>
                     </div>
@@ -183,7 +183,7 @@ export default function DoctorPrescriptions() {
                         ))}
                       </div>
                     )}
-                    {p.advice && <p className="text-xs text-[#25C2C3] mt-2">পরামর্শ: {p.advice}</p>}
+                    {p.advice && <p className="text-xs text-[#25C2C3] mt-2">{t("doctor.adviceLabel").replace("{a}", p.advice)}</p>}
                   </CardContent>
                 </Card>
               ))}
@@ -200,53 +200,53 @@ export default function DoctorPrescriptions() {
               <div className="grid md:grid-cols-2 gap-3">
                 <Select value={form.patientId} onValueChange={(v) => v !== null && setForm({ ...form, patientId: v })}>
                   <SelectTrigger className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs">
-                    <SelectValue placeholder="রোগী নির্বাচন করুন *" />
+                    <SelectValue placeholder={t("doctor.selectPatient")} />
                   </SelectTrigger>
                   <SelectContent className="bg-[#0a0d16] border-white/[.08] text-[#EFF2F2]">
                     {patients.map(p => <SelectItem key={p.patientId} value={p.patientId}>{p.name} ({p.phone || ""})</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Input placeholder="হাসপাতালের নাম" value={form.hospitalName} onChange={e => setForm({ ...form, hospitalName: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
+                <Input placeholder={t("doctor.hospitalName")} value={form.hospitalName} onChange={e => setForm({ ...form, hospitalName: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
               </div>
 
               <div className="grid md:grid-cols-2 gap-3">
-                <Input placeholder="নির্ণয় (Diagnosis)" value={form.diagnosis} onChange={e => setForm({ ...form, diagnosis: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
-                <Input placeholder="লক্ষণ (Symptoms)" value={form.symptoms} onChange={e => setForm({ ...form, symptoms: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
+                <Input placeholder={t("doctor.diagnosis")} value={form.diagnosis} onChange={e => setForm({ ...form, diagnosis: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
+                <Input placeholder={t("doctor.symptoms")} value={form.symptoms} onChange={e => setForm({ ...form, symptoms: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
-                <Input placeholder="BP (e.g. 120/80)" value={form.bloodPressure} onChange={e => setForm({ ...form, bloodPressure: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
-                <Input placeholder="তাপমাত্রা (°F)" value={form.temperature} onChange={e => setForm({ ...form, temperature: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
-                <Input placeholder="ওজন (kg)" type="number" value={form.patientWeight} onChange={e => setForm({ ...form, patientWeight: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
+                <Input placeholder={t("doctor.bloodPressure")} value={form.bloodPressure} onChange={e => setForm({ ...form, bloodPressure: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
+                <Input placeholder={t("doctor.temperature")} value={form.temperature} onChange={e => setForm({ ...form, temperature: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
+                <Input placeholder={t("doctor.weight")} type="number" value={form.patientWeight} onChange={e => setForm({ ...form, patientWeight: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
               </div>
 
-              <Textarea placeholder="নোটস" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs min-h-[60px]" />
-              <Textarea placeholder="পরামর্শ (Advice)" value={form.advice} onChange={e => setForm({ ...form, advice: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs min-h-[60px]" />
+              <Textarea placeholder={t("doctor.notes")} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs min-h-[60px]" />
+              <Textarea placeholder={t("doctor.advice")} value={form.advice} onChange={e => setForm({ ...form, advice: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs min-h-[60px]" />
 
               <div className="grid md:grid-cols-2 gap-3">
-                <Input type="date" placeholder="ফলো-আপ তারিখ" value={form.followUpDate} onChange={e => setForm({ ...form, followUpDate: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
-                <Input placeholder="সিগনেচার" value={form.signature} onChange={e => setForm({ ...form, signature: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs font-mono" />
+                <Input type="date" placeholder={t("doctor.followUp")} value={form.followUpDate} onChange={e => setForm({ ...form, followUpDate: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
+                <Input placeholder={t("doctor.signature")} value={form.signature} onChange={e => setForm({ ...form, signature: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs font-mono" />
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-[#EFF2F2]">ওষুধসমূহ</p>
-                  <Button type="button" variant="outline" size="sm" onClick={addMedicine} className="border-[#25C2C3]/30 text-[#25C2C3] rounded-xl text-xs"><Plus className="w-3 h-3 mr-1" /> ওষুধ</Button>
+                  <p className="text-sm font-medium text-[#EFF2F2]">{t("doctor.medicines")}</p>
+                  <Button type="button" variant="outline" size="sm" onClick={addMedicine} className="border-[#25C2C3]/30 text-[#25C2C3] rounded-xl text-xs"><Plus className="w-3 h-3 mr-1" /> {t("doctor.addMedicine")}</Button>
                 </div>
                 {form.medicines.map((med: any, idx: number) => (
                   <div key={idx} className="p-3 rounded-xl bg-white/[.04] border border-white/[.08] space-y-2">
                     <div className="flex items-center gap-2">
-                      <Input placeholder="ওষুধের নাম" value={med.name} onChange={e => updateMedicine(idx, "name", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs flex-1" />
-                      <Input placeholder="ডোজ" value={med.dosage} onChange={e => updateMedicine(idx, "dosage", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs w-20" />
+                      <Input placeholder={t("doctor.medicineName")} value={med.name} onChange={e => updateMedicine(idx, "name", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs flex-1" />
+                      <Input placeholder={t("doctor.dosage")} value={med.dosage} onChange={e => updateMedicine(idx, "dosage", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs w-20" />
                       <Button variant="ghost" size="icon" onClick={() => removeMedicine(idx)} className="text-red-400 h-7 w-7"><X className="w-3.5 h-3.5" /></Button>
                     </div>
                     <div className="flex items-center gap-2 text-xs flex-wrap">
-                      <label className="flex items-center gap-1"><input type="checkbox" checked={med.morning} onChange={e => updateMedicine(idx, "morning", e.target.checked)} className="accent-[#F96801]" /> সকাল</label>
-                      <label className="flex items-center gap-1"><input type="checkbox" checked={med.noon} onChange={e => updateMedicine(idx, "noon", e.target.checked)} className="accent-[#F96801]" /> দুপুর</label>
-                      <label className="flex items-center gap-1"><input type="checkbox" checked={med.evening} onChange={e => updateMedicine(idx, "evening", e.target.checked)} className="accent-[#F96801]" /> বিকাল</label>
-                      <label className="flex items-center gap-1"><input type="checkbox" checked={med.night} onChange={e => updateMedicine(idx, "night", e.target.checked)} className="accent-[#F96801]" /> রাত</label>
-                      <Input placeholder="বিধি" value={med.frequency} onChange={e => updateMedicine(idx, "frequency", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs w-16" />
-                      <Input placeholder="মেয়াদ" value={med.duration} onChange={e => updateMedicine(idx, "duration", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs w-16" />
+                      <label className="flex items-center gap-1"><input type="checkbox" checked={med.morning} onChange={e => updateMedicine(idx, "morning", e.target.checked)} className="accent-[#F96801]" /> {t("doctor.morning")}</label>
+                      <label className="flex items-center gap-1"><input type="checkbox" checked={med.noon} onChange={e => updateMedicine(idx, "noon", e.target.checked)} className="accent-[#F96801]" /> {t("doctor.noon")}</label>
+                      <label className="flex items-center gap-1"><input type="checkbox" checked={med.evening} onChange={e => updateMedicine(idx, "evening", e.target.checked)} className="accent-[#F96801]" /> {t("doctor.evening")}</label>
+                      <label className="flex items-center gap-1"><input type="checkbox" checked={med.night} onChange={e => updateMedicine(idx, "night", e.target.checked)} className="accent-[#F96801]" /> {t("doctor.night")}</label>
+                      <Input placeholder={t("doctor.frequency")} value={med.frequency} onChange={e => updateMedicine(idx, "frequency", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs w-16" />
+                      <Input placeholder={t("doctor.duration")} value={med.duration} onChange={e => updateMedicine(idx, "duration", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs w-16" />
                     </div>
                   </div>
                 ))}
@@ -254,7 +254,7 @@ export default function DoctorPrescriptions() {
 
               <div className="flex gap-3 pt-2">
                 <Button onClick={() => handleSubmit(true)} disabled={loading} variant="outline" className="flex-1 border-white/[.08] text-[#A5ABB0] rounded-xl text-xs">
-                  <Save className="w-4 h-4 mr-1" /> ড্রাফট সংরক্ষণ
+                  <Save className="w-4 h-4 mr-1" /> {t("doctor.saveDraft")}
                 </Button>
                 <Button onClick={() => handleSubmit(false)} disabled={loading} className="flex-1 gradient-primary text-[#160500] rounded-xl text-xs">
                   {loading ? <LoadingSpinner /> : null} {t("doctor.addPrescription")}
@@ -268,7 +268,7 @@ export default function DoctorPrescriptions() {
           {drafts.length === 0 ? (
             <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
               <Save className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-              <p className="text-[#A5ABB0] text-sm">কোনো ড্রাফট নেই</p>
+              <p className="text-[#A5ABB0] text-sm">{t("doctor.noDrafts")}</p>
             </Card>
           ) : (
             <div className="space-y-3">
@@ -277,10 +277,10 @@ export default function DoctorPrescriptions() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-[#EFF2F2]">{d.diagnosis || "কোনো শিরোনাম নেই"}</p>
+                        <p className="text-sm text-[#EFF2F2]">{d.diagnosis || t("doctor.noTitle")}</p>
                         <p className="text-xs text-[#A5ABB0]">{new Date(d.updatedAt).toLocaleDateString("bn-BD")}</p>
                       </div>
-                      <Badge className="bg-amber-500/20 text-amber-400 text-xs">ড্রাফট</Badge>
+                      <Badge className="bg-amber-500/20 text-amber-400 text-xs">{t("doctor.draft")}</Badge>
                     </div>
                   </CardContent>
                 </Card>
