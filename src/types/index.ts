@@ -185,6 +185,20 @@ export interface DashboardData {
   pendingPrescriptions: number
 }
 
+export interface DoctorDashboardData {
+  role: "DOCTOR"
+  todayAppointments: number
+  totalPatients: number
+  pendingPrescriptions: number
+  emergencyCases: number
+  completedAppointments: number
+  upcomingAppointments: number
+  weeklyStats: { labels: string[]; data: number[] }
+  recentAppointments: { id: string; patientName: string; time: string; problem: string; status: string }[]
+  recentPrescriptions: { id: string; patientName: string; diagnosis: string | null; createdAt: string; medicinesCount: number }[]
+  emergencyPatients: { id: string; patientName: string; phone: string | null; message: string | null; createdAt: string }[]
+}
+
 export interface AIAssistantMessage {
   role: "user" | "assistant"
   content: string
