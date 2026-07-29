@@ -109,6 +109,12 @@ model User {
   chamberLocation String?
   chamberLatitude  Float?
   chamberLongitude Float?
+  degree         String?
+  specialization String?
+  experience     Int?
+  consultationFee Float?
+  languagesSpoken String[]
+  hospitalName   String?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
@@ -128,6 +134,7 @@ model User {
   emergencyAlerts  EmergencyAlert[]
   sosAlerts        SOSAlert[]
   dietPlans        DietPlan[]
+  prescriptionDrafts PrescriptionDraft[]
 }
 
 model Patient {
@@ -245,9 +252,15 @@ model Prescription {
   doctorName    String?
   hospitalName  String?
   diagnosis     String?
+  symptoms      String?
   notes         String?
   advice        String?
+  bloodPressure String?
+  temperature   String?
+  patientWeight Float?
   followUpDate  DateTime?
+  signature     String?
+  isDraft       Boolean  @default(false)
   imageUrl      String?
   pdfUrl        String?
   extractedText String?  @db.Text
@@ -258,6 +271,28 @@ model Prescription {
   medicines Medicine[]
 
   @@index([userId])
+}
+
+model PrescriptionDraft {
+  id            String   @id @default(cuid())
+  doctorId      String
+  userId        String?
+  diagnosis     String?
+  symptoms      String?
+  notes         String?
+  advice        String?
+  bloodPressure String?
+  temperature   String?
+  patientWeight Float?
+  followUpDate  DateTime?
+  hospitalName  String?
+  medicines     Json     @default("[]")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  doctor User @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId])
 }
 
 model HealthRecord {

@@ -8,27 +8,43 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
   const { searchParams } = new URL(req.url)
-  const patientId = searchParams.get("patientId")
-  const doctorName = session.user.name
+  const filter = searchParams.get("filter") || "today"
+  const q = searchParams.get("q") || ""
+  const doctorName = session.user.name || ""
 
-  let userId: string | undefined
-  if (patientId) {
-    const patient = await prisma.patient.findUnique({ where: { id: patientId } })
-    if (patient) userId = patient.userId
-  }
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const where: any = { doctorName }
 
-  const where: any = {}
-  if (doctorName) {
-    where.doctorName = doctorName
-  }
-  if (userId) {
-    where.userId = userId
+  if (filter === "today") {
+    where.date = { gte: today, lt: new Date(today.getTime() + 86400000) }
+  } else if (filter === "upcoming") {
+    where.date = { gte: new Date() }
+    where.status = { in: ["SCHEDULED", "CONFIRMED"] }
+  } else if (filter === "completed") {
+    where.status = "COMPLETED"
+  } else if (filter === "cancelled") {
+    where.status = "CANCELLED"
   }
 
   const appointments = await prisma.appointment.findMany({
     where,
-    orderBy: { date: "desc" },
-    include: { user: { select: { id: true, name: true } } },
+    orderBy: { date: "asc" },
+    include: { user: { select: { id: true, name: true, phone: true, image: true, age: true, gender: true } } },
   })
-  return NextResponse.json(appointments)
+
+  let result = appointments.map(a => ({
+    id: a.id, patientId: a.userId, patientName: a.user.name, patientPhone: a.user.phone,
+    patientImage: a.user.image, patientAge: a.user.age, patientGender: a.user.gender,
+    date: a.date, duration: a.duration, status: a.status, notes: a.notes,
+    location: a.location, meetingLink: a.meetingLink, specialty: a.specialty,
+    hospitalName: a.hospitalName,
+  }))
+
+  if (q) {
+    const term = q.toLowerCase()
+    result = result.filter(a => a.patientName?.toLowerCase().includes(term) || a.patientPhone?.includes(term))
+  }
+
+  return NextResponse.json(result)
 }

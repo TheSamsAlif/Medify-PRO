@@ -22,6 +22,10 @@ import {
   Apple,
   AlertCircle,
   Clock,
+  Ambulance,
+  FileText,
+  Settings,
+  ChevronDown,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -31,19 +35,27 @@ import { signOut } from "next-auth/react"
 const navigation = [
   { name: "Dashboard", nameBn: "ড্যাশবোর্ড", href: "/dashboard", icon: LayoutDashboard, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
   { name: "Medicines", nameBn: "ওষুধ", href: "/medicines", icon: Pill, roles: ["PATIENT", "GUARDIAN"] },
-  { name: "Prescriptions", nameBn: "প্রেসক্রিপশন", href: "/prescriptions", icon: Scan, roles: ["PATIENT", "DOCTOR"] },
+  { name: "Prescriptions", nameBn: "প্রেসক্রিপশন", href: "/prescriptions", icon: Scan, roles: ["PATIENT"] },
   { name: "AI Assistant", nameBn: "AI সহায়ক", href: "/assistant", icon: Bot, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
-  { name: "Health Records", nameBn: "স্বাস্থ্য রেকর্ড", href: "/records", icon: Activity, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
+  { name: "Health Records", nameBn: "স্বাস্থ্য রেকর্ড", href: "/records", icon: Activity, roles: ["PATIENT", "GUARDIAN"] },
   { name: "My Doctors", nameBn: "আমার ডাক্তার", href: "/my-doctors", icon: Stethoscope, roles: ["PATIENT"] },
-  { name: "Medicine History", nameBn: "ওষুধের ইতিহাস", href: "/medicine-history", icon: Clock, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
-  { name: "Appointments", nameBn: "অ্যাপয়েন্টমেন্ট", href: "/appointments", icon: Calendar, roles: ["PATIENT", "DOCTOR"] },
+  { name: "Medicine History", nameBn: "ওষুধের ইতিহাস", href: "/medicine-history", icon: Clock, roles: ["PATIENT", "GUARDIAN"] },
+  { name: "Appointments", nameBn: "অ্যাপয়েন্টমেন্ট", href: "/appointments", icon: Calendar, roles: ["PATIENT"] },
   { name: "Hospitals", nameBn: "হাসপাতাল", href: "/hospitals", icon: MapPin, roles: ["PATIENT", "GUARDIAN"] },
   { name: "Drug Interactions", nameBn: "ড্রাগ চেকার", href: "/interactions", icon: AlertCircle, roles: ["PATIENT", "GUARDIAN"] },
   { name: "Lifestyle", nameBn: "লাইফস্টাইল", href: "/lifestyle", icon: Apple, roles: ["PATIENT", "GUARDIAN"] },
   { name: "Guardian", nameBn: "অভিভাবক", href: "/guardian", icon: Users, roles: ["GUARDIAN"] },
-  { name: "Doctor", nameBn: "ডাক্তার", href: "/doctor", icon: Stethoscope, roles: ["DOCTOR"] },
   { name: "Emergency", nameBn: "জরুরি সেবা", href: "/emergency", icon: PhoneCall, roles: ["PATIENT", "GUARDIAN"] },
-  { name: "Profile", nameBn: "প্রোফাইল", href: "/profile", icon: User, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
+  { name: "Profile", nameBn: "প্রোফাইল", href: "/profile", icon: User, roles: ["PATIENT", "GUARDIAN"] },
+
+  // Doctor-only navigation
+  { name: "Doctor", nameBn: "ডাক্তার", href: "/doctor", icon: Stethoscope, roles: ["DOCTOR"] },
+  { name: "Doctor Patients", nameBn: "রোগী ব্যবস্থাপনা", href: "/doctor/patients", icon: Users, roles: ["DOCTOR"] },
+  { name: "Doctor Prescriptions", nameBn: "প্রেসক্রিপশন", href: "/doctor/prescriptions", icon: FileText, roles: ["DOCTOR"] },
+  { name: "Doctor Records", nameBn: "স্বাস্থ্য রেকর্ড", href: "/doctor/records", icon: Activity, roles: ["DOCTOR"] },
+  { name: "Doctor Appointments", nameBn: "অ্যাপয়েন্টমেন্ট", href: "/doctor/appointments", icon: Calendar, roles: ["DOCTOR"] },
+  { name: "Doctor Emergency", nameBn: "জরুরি বিভাগ", href: "/doctor/emergency", icon: Ambulance, roles: ["DOCTOR"] },
+  { name: "Doctor Profile", nameBn: "ডাক্তার প্রোফাইল", href: "/doctor/profile", icon: Settings, roles: ["DOCTOR"] },
 ]
 
 export function Sidebar() {
