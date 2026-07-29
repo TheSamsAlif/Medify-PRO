@@ -49,6 +49,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ── Default: Dark variables ── */
 :root, .dark {
   --background: #040406;
   --background-2: #0a0d16;
@@ -86,6 +87,55 @@
   --sidebar-accent-foreground: #F96801;
   --sidebar-border: rgba(255,255,255,.08);
   --sidebar-ring: #F96801;
+}
+
+/* ── Light mode overrides (when HTML does NOT have class="dark") ── */
+:root:not(.dark) {
+  --background: #f5f6fa;
+  --background-2: #ffffff;
+  --foreground: #0f172a;
+  --card: rgba(255,255,255,.8);
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --muted: rgba(0,0,0,.04);
+  --muted-foreground: #64748b;
+  --border: rgba(0,0,0,.1);
+  --input: rgba(0,0,0,.1);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-border: rgba(0,0,0,.08);
+  --sidebar-accent: rgba(249,104,1,.08);
+}
+
+/* ── Override hardcoded dark colours in light mode ── */
+
+/* nav-glass in light mode */
+:root:not(.dark) .nav-glass {
+  background: rgba(255,255,255,.85);
+  border-bottom: 1px solid var(--border);
+}
+
+/* glass / glass-card in light mode */
+:root:not(.dark) .glass,
+:root:not(.dark) .glass-card {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+/* Scrollbar light mode */
+:root:not(.dark) ::-webkit-scrollbar-track {
+  background: var(--background);
+}
+:root:not(.dark) ::selection {
+  background: #F96801;
+  color: #ffffff;
+}
+
+/* Shadcn popover / dialog overrides for light mode */
+:root:not(.dark) [data-radix-popper-content-wrapper] {
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
 }
 
 @layer base {
@@ -321,7 +371,7 @@
 @keyframes aurora-float-3 {
   0%, 100% { transform: translate(0,0) scale(1); }
   33% { transform: translate(20px,40px) scale(.95); }
-  66% { transform: translate(-30px,-20px) scale(1.05); }
+  66% { transform: translate(-20px,-20px) scale(1.05); }
 }
 
 .animate-aurora-1 { animation: aurora-float-1 22s ease-in-out infinite; }

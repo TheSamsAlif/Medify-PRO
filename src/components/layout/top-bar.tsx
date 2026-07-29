@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
 import { Bell, Search, Menu, Loader2, CheckCircle2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useSession } from "next-auth/react"
@@ -15,6 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Sidebar } from "@/components/layout/sidebar"
@@ -68,8 +68,22 @@ export function TopBar() {
     }
     toast.success("সব নোটিফিকেশন পড়া হয়েছে")
   }
+
+  const formatDate = (d: unknown) => {
+    try {
+      if (!d) return ""
+      const date = new Date(d as string)
+      if (isNaN(date.getTime())) return ""
+      return date.toLocaleString("bn-BD")
+    } catch {
+      return ""
+    }
+  }
+
   const pageTitles: Record<string, string> = {
     "/dashboard": "ড্যাশবোর্ড",
+    "/my-doctors": "আমার ডাক্তার",
+    "/medicine-history": "ওষুধের ইতিহাস",
     "/medicines": "ওষুধসমূহ",
     "/prescriptions": "প্রেসক্রিপশন",
     "/assistant": "AI স্বাস্থ্য সহায়ক",
@@ -92,10 +106,8 @@ export function TopBar() {
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center gap-3">
           <Sheet>
-            <SheetTrigger>
-              <Button variant="ghost" size="icon" className="lg:hidden rounded-full text-[#A5ABB0] hover:text-[#EFF2F2]">
-                <Menu className="w-5 h-5" />
-              </Button>
+            <SheetTrigger className="lg:hidden rounded-full w-9 h-9 flex items-center justify-center text-[#A5ABB0] hover:text-[#EFF2F2] hover:bg-white/[.06] transition-colors">
+              <Menu className="w-5 h-5" />
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-72 bg-[#040406] border-r border-white/[.06]">
               <Sidebar />
@@ -125,16 +137,18 @@ export function TopBar() {
               )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80 bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-h-96 overflow-y-auto">
-              <DropdownMenuLabel>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">নোটিফিকেশন</span>
-                  {unreadCount > 0 && (
-                    <button onClick={markAllRead} className="text-xs text-[#25C2C3] hover:underline">
-                      সব পড়া হয়েছে
-                    </button>
-                  )}
-                </div>
-              </DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">নোটিফিকেশন</span>
+                    {unreadCount > 0 && (
+                      <span onClick={markAllRead} className="text-xs text-[#25C2C3] hover:underline cursor-pointer">
+                        সব পড়া হয়েছে
+                      </span>
+                    )}
+                  </div>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator className="bg-white/[.06]" />
               {notifLoading ? (
                 <div className="flex items-center justify-center py-8">
@@ -148,19 +162,26 @@ export function TopBar() {
                 notifications.slice(0, 20).map((n) => (
                   <DropdownMenuItem
                     key={n.id}
-                    className={`focus:bg-white/[.06] cursor-default ${!n.read ? "bg-white/[.03]" : ""}`}
+                    className={`focus:bg-white/[.06] cursor-pointer ${!n.read ? "bg-white/[.03]" : ""}`}
+                    onClick={() => {
+                      if (!n.read) markAsRead(n.id)
+                      const d = n.data as { mapsLink?: string; alertId?: string } | null
+                      if (n.type === "SOS" && d?.mapsLink) {
+                        window.open(d.mapsLink, "_blank")
+                      }
+                    }}
                   >
                     <div className="flex items-start gap-3 py-1 w-full">
                       <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.read ? "bg-[#2B3856]" : "bg-[#F96801]"}`} />
-                      <div className="flex-1 min-w-0" onClick={() => !n.read && markAsRead(n.id)}>
-                        <p className={`text-sm ${n.read ? "text-[#A5ABB0]" : "text-[#EFF2F2] font-medium"}`}>{n.title}</p>
-                        <p className="text-xs text-[#A5ABB0] mt-0.5 line-clamp-2">{n.body}</p>
-                        <p className="text-[10px] text-[#A5ABB0]/60 mt-1">{new Date(n.createdAt).toLocaleString("bn-BD")}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm ${n.read ? "text-[#A5ABB0]" : "text-[#EFF2F2] font-medium"}`}>{n.title || ""}</p>
+                        <p className="text-xs text-[#A5ABB0] mt-0.5 line-clamp-2">{n.body || ""}</p>
+                        <p className="text-[10px] text-[#A5ABB0]/60 mt-1">{formatDate(n.createdAt)}</p>
                       </div>
                       {!n.read && (
-                        <button onClick={() => markAsRead(n.id)} className="text-[#25C2C3] hover:text-[#25C2C3]/80 flex-shrink-0 mt-1">
+                        <span className="text-[#25C2C3] flex-shrink-0 mt-1">
                           <CheckCircle2 className="w-4 h-4" />
-                        </button>
+                        </span>
                       )}
                     </div>
                   </DropdownMenuItem>
@@ -178,18 +199,20 @@ export function TopBar() {
                 </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2]">
-              <DropdownMenuLabel>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{session?.user?.name}</span>
-                  <span className="text-xs text-[#A5ABB0]">{session?.user?.email}</span>
-                </div>
-              </DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{session?.user?.name}</span>
+                    <span className="text-xs text-[#A5ABB0]">{session?.user?.email}</span>
+                  </div>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator className="bg-white/[.06]" />
-              <DropdownMenuItem className="focus:bg-[#F96801]/12 focus:text-[#F96801]">
-                <a href="/profile" className="block w-full">প্রোফাইল</a>
+              <DropdownMenuItem className="focus:bg-[#F96801]/12 focus:text-[#F96801]" onClick={() => window.location.href = "/profile"}>
+                প্রোফাইল
               </DropdownMenuItem>
-              <DropdownMenuItem className="focus:bg-[#F96801]/12 focus:text-[#F96801]">
-                <a href="/dashboard" className="block w-full">ড্যাশবোর্ড</a>
+              <DropdownMenuItem className="focus:bg-[#F96801]/12 focus:text-[#F96801]" onClick={() => window.location.href = "/dashboard"}>
+                ড্যাশবোর্ড
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/[.06]" />
               <DropdownMenuItem className="text-[#f87171] focus:bg-[#f87171]/12" onClick={() => signOut({ callbackUrl: "/auth/login" })}>

@@ -2,19 +2,30 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Calendar, Clock, MapPin, Plus, Video, ChevronRight, Stethoscope } from "lucide-react"
+import { Calendar, Clock, MapPin, Plus, Video, ChevronRight, Stethoscope, Trash2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 import { AddAppointmentDialog } from "@/components/medical/add-appointment-dialog"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
 import type { Appointment } from "@/types"
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddDialog, setShowAddDialog] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
   useEffect(() => {
     fetchAppointments()
@@ -28,6 +39,22 @@ export default function AppointmentsPage() {
       toast.error("ডাটা লোড করতে সমস্যা")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`/api/appointments/${id}`, { method: "DELETE" })
+      if (res.ok) {
+        setAppointments(prev => prev.filter(a => a.id !== id))
+        toast.success("অ্যাপয়েন্টমেন্ট মুছে ফেলা হয়েছে")
+      } else {
+        toast.error("মুছতে সমস্যা হয়েছে")
+      }
+    } catch {
+      toast.error("মুছতে সমস্যা হয়েছে")
+    } finally {
+      setDeleteTarget(null)
     }
   }
 
@@ -113,6 +140,9 @@ export default function AppointmentsPage() {
                                 )}
                               </div>
                             </div>
+                            <Button variant="ghost" size="icon" className="flex-shrink-0 text-gray-400 hover:text-red-400" onClick={() => setDeleteTarget(apt.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -162,6 +192,23 @@ export default function AppointmentsPage() {
           )}
         </div>
       )}
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <AlertDialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>অ্যাপয়েন্টমেন্ট বাতিল করবেন?</AlertDialogTitle>
+            <AlertDialogDescription className="text-[#A5ABB0]">
+              এই অ্যাপয়েন্টমেন্টটি স্থায়ীভাবে মুছে ফেলা হবে।
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-white/[.08] text-[#A5ABB0]">না</AlertDialogCancel>
+            <AlertDialogAction className="bg-red-500 text-white hover:bg-red-600" onClick={() => deleteTarget && handleDelete(deleteTarget)}>
+              হ্যাঁ, মুছুন
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AddAppointmentDialog
         open={showAddDialog}
