@@ -52,3 +52,35 @@ export async function GET(req: Request) {
 
   return NextResponse.json(patients)
 }
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "DOCTOR") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { patientId } = await req.json()
+  if (!patientId) {
+    return NextResponse.json({ error: "Patient ID required" }, { status: 400 })
+  }
+
+  const cleanId = patientId.replace("PAT-", "").toLowerCase()
+
+  const allPatients = await prisma.patient.findMany({
+    where: { user: { role: "PATIENT" } },
+    include: { user: { select: { id: true, name: true } } },
+  })
+
+  const matched = allPatients.find(p => p.id.toLowerCase().endsWith(cleanId))
+  if (!matched) {
+    return NextResponse.json({ error: "রোগী পাওয়া যায়নি" }, { status: 404 })
+  }
+
+  await prisma.doctorPatient.upsert({
+    where: { doctorId_patientId: { doctorId: session.user.id, patientId: matched.id } },
+    create: { doctorId: session.user.id, patientId: matched.id },
+    update: {},
+  })
+
+  return NextResponse.json({ message: "রোগী সফলভাবে যুক্ত হয়েছে", patient: { patientId: matched.id, name: matched.user.name } })
+}

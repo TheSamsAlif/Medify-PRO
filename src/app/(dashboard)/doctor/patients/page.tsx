@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Users, Search, Phone, Mail, MapPin, AlertTriangle, Calendar, Heart, Droplets, FileText, Pill, Activity, X, ChevronRight } from "lucide-react"
+import { Users, Search, Phone, Mail, MapPin, AlertTriangle, Calendar, Heart, Droplets, FileText, Pill, Activity, X, ChevronRight, Plus } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,9 @@ export default function DoctorPatients() {
   const [patientDetail, setPatientDetail] = useState<any>(null)
   const [patientRecords, setPatientRecords] = useState<any>(null)
   const [detailLoading, setDetailLoading] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
+  const [addPatientId, setAddPatientId] = useState("")
+  const [adding, setAdding] = useState(false)
 
   useEffect(() => { fetchPatients() }, [])
 
@@ -47,6 +50,17 @@ export default function DoctorPatients() {
     } catch { toast.error("ডেটা লোড করতে সমস্যা") } finally { setDetailLoading(false) }
   }
 
+  const handleAddPatient = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!addPatientId.trim()) return
+    setAdding(true)
+    try {
+      const res = await fetch("/api/doctor/patients", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patientId: addPatientId.trim() }) })
+      if (res.ok) { toast.success("রোগী সফলভাবে যুক্ত হয়েছে"); setAddPatientId(""); setAddOpen(false); fetchPatients() }
+      else { const err = await res.json(); toast.error(err.error || "রোগী পাওয়া যায়নি") }
+    } catch { toast.error("ত্রুটি ঘটেছে") } finally { setAdding(false) }
+  }
+
   const filtered = patients.filter(p =>
     !search || p.name?.toLowerCase().includes(search.toLowerCase()) ||
     p.phone?.includes(search) || p.email?.toLowerCase().includes(search.toLowerCase())
@@ -59,10 +73,15 @@ export default function DoctorPatients() {
           <h2 className="text-2xl md:text-3xl font-bold text-[#EFF2F2]">{t("doctor.patientList")}</h2>
           <p className="text-[#A5ABB0] mt-1">রোগীদের সম্পূর্ণ তথ্য দেখুন</p>
         </div>
-        <Badge className="text-sm px-4 py-2 bg-white/[.06] text-[#EFF2F2] border-white/[.08]">
-          <Users className="w-4 h-4 text-[#F96801] mr-2" />
-          {patients.length} জন
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge className="text-sm px-4 py-2 bg-white/[.06] text-[#EFF2F2] border-white/[.08]">
+            <Users className="w-4 h-4 text-[#F96801] mr-2" />
+            {patients.length} জন
+          </Badge>
+          <Button onClick={() => setAddOpen(true)} className="gradient-primary text-[#160500] rounded-xl text-xs h-9">
+            <Plus className="w-4 h-4 mr-1" /> রোগী যোগ করুন
+          </Button>
+        </div>
       </div>
 
       <div className="relative mb-6">
@@ -262,6 +281,27 @@ export default function DoctorPatients() {
               </div>
             </>
           ) : null}
+        </DialogContent>
+      </Dialog>
+      {/* Add Patient Dialog */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">রোগী যোগ করুন</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddPatient} className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <label className="text-xs text-[#A5ABB0]">Patient ID (যেমন: PAT-2355)</label>
+              <Input placeholder="PAT-..." value={addPatientId} onChange={e => setAddPatientId(e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] uppercase font-mono" />
+            </div>
+            <DialogFooter className="pt-2">
+              <Button type="button" variant="outline" onClick={() => setAddOpen(false)} className="border-white/[.08] text-[#A5ABB0]">বাতিল</Button>
+              <Button type="submit" disabled={adding} className="gradient-primary text-[#160500]">
+                {adding && <span className="inline-block w-4 h-4 border-2 border-[#160500] border-t-transparent rounded-full animate-spin mr-2" />}
+                যোগ করুন
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </motion.div>
