@@ -39,7 +39,7 @@ export default function ProfilePage() {
   const [securityOpen, setSecurityOpen] = useState(false)
   const [themeOpen, setThemeOpen] = useState(false)
   const [doctorSettingsOpen, setDoctorSettingsOpen] = useState(false)
-  const { lang, setLang } = useI18n()
+  const { t, lang, setLang } = useI18n()
   const [langDialogOpen, setLangDialogOpen] = useState(false)
 
   const [form, setForm] = useState({
@@ -89,7 +89,7 @@ export default function ProfilePage() {
         })
       }
     } catch {
-      toast.error("প্রোফাইল লোড করতে সমস্যা হয়েছে")
+      toast.error(t("profile.loadError"))
     } finally {
       setLoading(false)
     }
@@ -123,14 +123,14 @@ export default function ProfilePage() {
           bloodGroup: data.user.bloodGroup || "",
           address: data.user.address || "",
         })
-        toast.success("প্রোফাইল সফলভাবে আপডেট হয়েছে")
+        toast.success(t("profile.updated"))
         setEditOpen(false)
         update({ name: form.name })
       } else {
-        toast.error(data.error || "প্রোফাইল আপডেট করতে সমস্যা হয়েছে")
+        toast.error(data.error || t("profile.updateError"))
       }
     } catch {
-      toast.error("নেটওয়ার্ক ত্রুটি")
+      toast.error(t("profile.networkError"))
     } finally {
       setSaving(false)
     }
@@ -147,7 +147,7 @@ export default function ProfilePage() {
               onClick={() => setEditOpen(true)}
               className="absolute top-4 right-4 bg-white/20 border-white/30 text-[#160500] hover:bg-white/30 text-xs rounded-xl"
             >
-              <Edit3 className="w-3.5 h-3.5 mr-1.5" /> সম্পাদনা
+              <Edit3 className="w-3.5 h-3.5 mr-1.5" /> {t("profile.editPersonalInfo")}
             </Button>
             <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-white/30 shadow-lg">
               <AvatarImage src={profile?.image || session?.user?.image || ""} />
@@ -155,12 +155,12 @@ export default function ProfilePage() {
                 {profile?.name?.charAt(0) || session?.user?.name?.charAt(0) || "U"}
               </AvatarFallback>
             </Avatar>
-            <h2 className="text-2xl font-bold">{profile?.name || session?.user?.name || "ব্যবহারকারী"}</h2>
+            <h2 className="text-2xl font-bold">{profile?.name || session?.user?.name || t("profile.user")}</h2>
             <p className="text-[#160500]/80 text-sm">{profile?.email || session?.user?.email}</p>
             
             <div className="flex items-center justify-center gap-2 mt-3">
               <Badge className="bg-white/25 text-[#160500] border-0 font-semibold">
-                {profile?.role === "PATIENT" ? "রোগী" : profile?.role === "GUARDIAN" ? "অভিভাবক" : profile?.role === "DOCTOR" ? "ডাক্তার" : "সদস্য"}
+                {profile?.role === "PATIENT" ? t("profile.patient") : profile?.role === "GUARDIAN" ? t("profile.guardian") : profile?.role === "DOCTOR" ? t("profile.doctor") : t("profile.member")}
               </Badge>
               {profile?.patientId && (
                 <Badge className="bg-[#160500]/20 text-[#160500] border-0 font-mono font-bold">
@@ -173,7 +173,7 @@ export default function ProfilePage() {
 
         <Card className="border border-white/[.08] bg-[#0a0d16]">
           <CardHeader>
-            <CardTitle className="text-lg text-[#EFF2F2]">সেটিংস</CardTitle>
+            <CardTitle className="text-lg text-[#EFF2F2]">{t("profile.settings")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <button
@@ -184,8 +184,8 @@ export default function ProfilePage() {
                 <User className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-sm text-[#EFF2F2]">ব্যক্তিগত তথ্য</p>
-                <p className="text-xs text-[#A5ABB0]">নাম, ফোন, বয়স, রক্তের গ্রুপ ও ঠিকানা</p>
+                <p className="font-medium text-sm text-[#EFF2F2]">{t("profile.personalInfo")}</p>
+                <p className="text-xs text-[#A5ABB0]">{t("profile.personalInfoDesc")}</p>
               </div>
               <ChevronRight className="w-5 h-5 text-[#A5ABB0]" />
             </button>
@@ -198,8 +198,8 @@ export default function ProfilePage() {
                 <Bell className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-sm text-[#EFF2F2]">নোটিফিকেশন সেটিংস</p>
-                <p className="text-xs text-[#A5ABB0]">ওষুধ রিমাইন্ডার ও অ্যালার্ট</p>
+                <p className="font-medium text-sm text-[#EFF2F2]">{t("profile.notifications")}</p>
+                <p className="text-xs text-[#A5ABB0]">{t("profile.notifDesc")}</p>
               </div>
               <ChevronRight className="w-5 h-5 text-[#A5ABB0]" />
             </button>
@@ -212,8 +212,8 @@ export default function ProfilePage() {
                 <Shield className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-sm text-[#EFF2F2]">প্রাইভেসি ও সিকিউরিটি</p>
-                <p className="text-xs text-[#A5ABB0]">পাসওয়ার্ড ও ডেটা সুরক্ষা</p>
+                <p className="font-medium text-sm text-[#EFF2F2]">{t("profile.security")}</p>
+                <p className="text-xs text-[#A5ABB0]">{t("profile.securityDesc")}</p>
               </div>
               <ChevronRight className="w-5 h-5 text-[#A5ABB0]" />
             </button>
@@ -227,8 +227,8 @@ export default function ProfilePage() {
                   <Stethoscope className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-sm text-[#EFF2F2]">ডাক্তার সেটিংস</p>
-                  <p className="text-xs text-[#A5ABB0]">রেজিস্ট্রেশন নম্বর, চেম্বারের অবস্থান, উপলব্ধতা</p>
+                  <p className="font-medium text-sm text-[#EFF2F2]">{t("profile.doctorSettings")}</p>
+                  <p className="text-xs text-[#A5ABB0]">{t("profile.doctorSettingsDesc")}</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-[#A5ABB0]" />
               </button>
@@ -238,7 +238,7 @@ export default function ProfilePage() {
 
         <Card className="border border-white/[.08] bg-[#0a0d16]">
           <CardHeader>
-            <CardTitle className="text-lg text-[#EFF2F2]">প্রিফারেন্স</CardTitle>
+            <CardTitle className="text-lg text-[#EFF2F2]">{t("profile.settings")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             <button
@@ -249,8 +249,8 @@ export default function ProfilePage() {
                 <Moon className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-sm text-[#EFF2F2]">অ্যাপের থিম</p>
-                <p className="text-xs text-[#A5ABB0]">ডার্ক / লাইট / সিস্টেম থিম</p>
+                <p className="font-medium text-sm text-[#EFF2F2]">{t("profile.theme")}</p>
+                <p className="text-xs text-[#A5ABB0]">{t("profile.themeDesc")}</p>
               </div>
               <ChevronRight className="w-5 h-5 text-[#A5ABB0]" />
             </button>
@@ -262,8 +262,8 @@ export default function ProfilePage() {
                 <Languages className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-sm text-[#EFF2F2]">ভাষা / Language</p>
-                <p className="text-xs text-[#A5ABB0]">{lang === "bn" ? "বাংলা" : "English"}</p>
+                <p className="font-medium text-sm text-[#EFF2F2]">{t("profile.langLabel")}</p>
+                <p className="text-xs text-[#A5ABB0]">{lang === "bn" ? t("profile.bangla") : t("profile.english")}</p>
               </div>
               <ChevronRight className="w-5 h-5 text-[#A5ABB0]" />
             </button>
@@ -276,22 +276,22 @@ export default function ProfilePage() {
           className="w-full rounded-xl py-6 text-red-400 border-red-500/20 hover:bg-red-500/10 bg-transparent"
         >
           <LogOut className="w-5 h-5 mr-2" />
-          সাইন আউট
+          {t("profile.signOut")}
         </Button>
 
         <p className="text-center text-xs text-[#A5ABB0]">
-          Medify PRO v1.0.0 • Healthcare SaaS Application
+          {t("app.name")} PRO {t("app.version")} • {t("app.tagline")}
         </p>
 
         {/* Edit Profile Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-lg">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold">ব্যক্তিগত তথ্য সম্পাদনা</DialogTitle>
+              <DialogTitle className="text-xl font-bold">{t("profile.editPersonalInfo")}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSave} className="space-y-4 pt-2">
               <div className="space-y-1.5">
-                <Label className="text-xs text-[#A5ABB0]">পূর্ণ নাম</Label>
+                <Label className="text-xs text-[#A5ABB0]">{t("profile.fullName")}</Label>
                 <Input
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
@@ -300,7 +300,7 @@ export default function ProfilePage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">ফোন নম্বর</Label>
+                  <Label className="text-xs text-[#A5ABB0]">{t("profile.phoneNumber")}</Label>
                   <Input
                     value={form.phone}
                     onChange={e => setForm({ ...form, phone: e.target.value })}
@@ -308,7 +308,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">বয়স</Label>
+                  <Label className="text-xs text-[#A5ABB0]">{t("profile.age")}</Label>
                   <Input
                     type="number"
                     value={form.age}
@@ -319,7 +319,7 @@ export default function ProfilePage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">লিঙ্গ (Gender)</Label>
+                  <Label className="text-xs text-[#A5ABB0]">{t("profile.gender")}</Label>
                   <Input
                     value={form.gender}
                     onChange={e => setForm({ ...form, gender: e.target.value })}
@@ -328,7 +328,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">রক্তের গ্রুপ</Label>
+                  <Label className="text-xs text-[#A5ABB0]">{t("profile.bloodGroup")}</Label>
                   <Input
                     value={form.bloodGroup}
                     onChange={e => setForm({ ...form, bloodGroup: e.target.value })}
@@ -338,7 +338,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-[#A5ABB0]">ঠিকানা</Label>
+                <Label className="text-xs text-[#A5ABB0]">{t("profile.address")}</Label>
                 <Input
                   value={form.address}
                   onChange={e => setForm({ ...form, address: e.target.value })}
@@ -347,11 +347,11 @@ export default function ProfilePage() {
               </div>
               <DialogFooter className="pt-4">
                 <Button type="button" variant="outline" onClick={() => setEditOpen(false)} className="border-white/[.08] text-[#A5ABB0]">
-                  বাতিল
+                  {t("profile.cancel")}
                 </Button>
                 <Button type="submit" disabled={saving} className="gradient-primary text-[#160500]">
                   {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                  সংরক্ষণ করুন
+                  {t("profile.save")}
                 </Button>
               </DialogFooter>
             </form>
@@ -362,36 +362,36 @@ export default function ProfilePage() {
         <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
           <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold">নোটিফিকেশন সেটিংস</DialogTitle>
+              <DialogTitle className="text-xl font-bold">{t("profile.notifications")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[#EFF2F2]">ওষুধ রিমাইন্ডার</p>
-                  <p className="text-xs text-[#A5ABB0]">সময়মতো ওষুধ খাওয়ার নোটিফিকেশন</p>
+                  <p className="text-sm font-medium text-[#EFF2F2]">{t("profile.medicineReminders")}</p>
+                  <p className="text-xs text-[#A5ABB0]">{t("profile.medicineRemindersDesc")}</p>
                 </div>
                 <Switch checked={notifications.medicineReminders} onCheckedChange={v => setNotifications({ ...notifications, medicineReminders: v })} />
               </div>
               <Separator className="bg-white/[.08]" />
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[#EFF2F2]">SOS অ্যালার্ট</p>
-                  <p className="text-xs text-[#A5ABB0]">জরুরি অবস্থার তাৎক্ষণিক নোটিফিকেশন</p>
+                  <p className="text-sm font-medium text-[#EFF2F2]">{t("profile.sosAlerts")}</p>
+                  <p className="text-xs text-[#A5ABB0]">{t("profile.sosAlertsDesc")}</p>
                 </div>
                 <Switch checked={notifications.sosAlerts} onCheckedChange={v => setNotifications({ ...notifications, sosAlerts: v })} />
               </div>
               <Separator className="bg-white/[.08]" />
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[#EFF2F2]">অ্যাপয়েন্টমেন্ট রিমাইন্ডার</p>
-                  <p className="text-xs text-[#A5ABB0]">ডাক্তার সাক্ষাতের আগের অ্যালার্ট</p>
+                  <p className="text-sm font-medium text-[#EFF2F2]">{t("profile.appointmentReminders")}</p>
+                  <p className="text-xs text-[#A5ABB0]">{t("profile.appointmentRemindersDesc")}</p>
                 </div>
                 <Switch checked={notifications.appointmentReminders} onCheckedChange={v => setNotifications({ ...notifications, appointmentReminders: v })} />
               </div>
             </div>
             <DialogFooter className="pt-4">
-              <Button onClick={() => { setNotifOpen(false); toast.success("নোটিফিকেশন সেটিংস সংরক্ষিত হয়েছে") }} className="gradient-primary text-[#160500] w-full">
-                সংরক্ষণ করুন
+              <Button onClick={() => { setNotifOpen(false); toast.success(t("profile.notifSaved")) }} className="gradient-primary text-[#160500] w-full">
+                {t("profile.save")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -401,18 +401,18 @@ export default function ProfilePage() {
         <Dialog open={securityOpen} onOpenChange={setSecurityOpen}>
           <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold">প্রাইভেসি ও সিকিউরিটি</DialogTitle>
+              <DialogTitle className="text-xl font-bold">{t("profile.securityTitle")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2 text-sm text-[#A5ABB0]">
-              <p>আপনার অ্যাকাউন্ট সম্পূর্ণ নিরাপদ ও এনক্রিপ্টেড।</p>
+              <p>{t("profile.securityDesc")}</p>
               <div className="p-3 rounded-xl bg-white/[.04] border border-white/[.08] space-y-2">
-                <p className="font-medium text-[#EFF2F2]">ডেটা এনক্রিপশন</p>
-                <p className="text-xs">মেডিকেল রেকর্ড এবং প্রেসক্রিপশন সিকিউর ডাটাবেজে সংরক্ষিত।</p>
+                <p className="font-medium text-[#EFF2F2]">{t("profile.encryption")}</p>
+                <p className="text-xs">{t("profile.encryptionDesc")}</p>
               </div>
             </div>
             <DialogFooter className="pt-4">
               <Button onClick={() => setSecurityOpen(false)} className="gradient-primary text-[#160500] w-full">
-                ঠিক আছে
+                {t("profile.ok")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -424,7 +424,7 @@ export default function ProfilePage() {
         <Dialog open={doctorSettingsOpen} onOpenChange={setDoctorSettingsOpen}>
           <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold">ডাক্তার সেটিংস</DialogTitle>
+              <DialogTitle className="text-xl font-bold">{t("profile.doctorSettingsTitle")}</DialogTitle>
             </DialogHeader>
             <form onSubmit={async (e) => {
               e.preventDefault()
@@ -440,19 +440,19 @@ export default function ProfilePage() {
                   }),
                 })
                 if (res.ok) {
-                  toast.success("সেটিংস সংরক্ষিত হয়েছে")
+                  toast.success(t("profile.settingsSaved"))
                   setDoctorSettingsOpen(false)
                 } else {
-                  toast.error("সমস্যা হয়েছে")
+                  toast.error(t("profile.settingsError"))
                 }
               } catch {
-                toast.error("নেটওয়ার্ক ত্রুটি")
+                toast.error(t("profile.networkError"))
               } finally {
                 setSaving(false)
               }
             }} className="space-y-4 pt-2">
               <div className="space-y-1.5">
-                <Label className="text-xs text-[#A5ABB0]">BM&DC Registration Number (ঐচ্ছিক)</Label>
+                <Label className="text-xs text-[#A5ABB0]">{t("profile.registration")}</Label>
                 <Input
                   value={doctorForm.registrationNumber}
                   onChange={e => setDoctorForm({ ...doctorForm, registrationNumber: e.target.value })}
@@ -462,27 +462,27 @@ export default function ProfilePage() {
               </div>
               <div className="flex items-center justify-between p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
                 <div>
-                  <p className="text-sm font-medium text-[#EFF2F2]">প্রাপ্তিসাধ্য (Available)</p>
-                  <p className="text-xs text-[#A5ABB0]">রোগীরা আপনার উপলব্ধতা দেখতে পাবেন</p>
+                  <p className="text-sm font-medium text-[#EFF2F2]">{t("profile.availability")}</p>
+                  <p className="text-xs text-[#A5ABB0]">{t("profile.availabilityDesc")}</p>
                 </div>
                 <Switch checked={doctorForm.isAvailable} onCheckedChange={v => setDoctorForm({ ...doctorForm, isAvailable: v })} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-[#A5ABB0]">চেম্বারের অবস্থান (ঐচ্ছিক)</Label>
+                <Label className="text-xs text-[#A5ABB0]">{t("profile.chamberLocation")}</Label>
                 <Input
                   value={doctorForm.chamberLocation}
                   onChange={e => setDoctorForm({ ...doctorForm, chamberLocation: e.target.value })}
-                  placeholder="ঠিকানা লিখুন"
+                  placeholder={t("profile.chamberPlaceholder")}
                   className="bg-white/[.04] border-white/[.08] text-[#EFF2F2]"
                 />
               </div>
               <DialogFooter className="pt-4">
                 <Button type="button" variant="outline" onClick={() => setDoctorSettingsOpen(false)} className="border-white/[.08] text-[#A5ABB0]">
-                  বাতিল
+                  {t("profile.cancel")}
                 </Button>
                 <Button type="submit" disabled={saving} className="gradient-primary text-[#160500]">
                   {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                  সংরক্ষণ করুন
+                  {t("profile.save")}
                 </Button>
               </DialogFooter>
             </form>
@@ -493,7 +493,7 @@ export default function ProfilePage() {
         <Dialog open={langDialogOpen} onOpenChange={setLangDialogOpen}>
           <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-sm">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold">ভাষা / Language</DialogTitle>
+              <DialogTitle className="text-xl font-bold">{t("profile.langDialogTitle")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-2 pt-2">
               <button
@@ -502,7 +502,7 @@ export default function ProfilePage() {
               >
                 <span className="text-2xl">🇧🇩</span>
                 <div>
-                  <p className="font-medium text-sm text-[#EFF2F2]">বাংলা</p>
+                  <p className="font-medium text-sm text-[#EFF2F2]">{t("profile.bangla")}</p>
                   <p className="text-xs text-[#A5ABB0]">Bangla</p>
                 </div>
                 {lang === "bn" && <CheckCircle2 className="w-5 h-5 text-[#F96801] ml-auto" />}
@@ -513,7 +513,7 @@ export default function ProfilePage() {
               >
                 <span className="text-2xl">🇬🇧</span>
                 <div>
-                  <p className="font-medium text-sm text-[#EFF2F2]">English</p>
+                  <p className="font-medium text-sm text-[#EFF2F2]">{t("profile.english")}</p>
                   <p className="text-xs text-[#A5ABB0]">ইংরেজি</p>
                 </div>
                 {lang === "en" && <CheckCircle2 className="w-5 h-5 text-[#F96801] ml-auto" />}

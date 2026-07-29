@@ -25,41 +25,40 @@ import {
   Ambulance,
   FileText,
   Settings,
-  ChevronDown,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { signOut } from "next-auth/react"
+import { useI18n } from "@/lib/i18n"
 
 const navigation = [
-  { name: "Dashboard", nameBn: "ড্যাশবোর্ড", href: "/dashboard", icon: LayoutDashboard, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
-  { name: "Medicines", nameBn: "ওষুধ", href: "/medicines", icon: Pill, roles: ["PATIENT", "GUARDIAN"] },
-  { name: "Prescriptions", nameBn: "প্রেসক্রিপশন", href: "/prescriptions", icon: Scan, roles: ["PATIENT"] },
-  { name: "AI Assistant", nameBn: "AI সহায়ক", href: "/assistant", icon: Bot, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
-  { name: "Health Records", nameBn: "স্বাস্থ্য রেকর্ড", href: "/records", icon: Activity, roles: ["PATIENT", "GUARDIAN"] },
-  { name: "My Doctors", nameBn: "আমার ডাক্তার", href: "/my-doctors", icon: Stethoscope, roles: ["PATIENT"] },
-  { name: "Medicine History", nameBn: "ওষুধের ইতিহাস", href: "/medicine-history", icon: Clock, roles: ["PATIENT", "GUARDIAN"] },
-  { name: "Appointments", nameBn: "অ্যাপয়েন্টমেন্ট", href: "/appointments", icon: Calendar, roles: ["PATIENT"] },
-  { name: "Hospitals", nameBn: "হাসপাতাল", href: "/hospitals", icon: MapPin, roles: ["PATIENT", "GUARDIAN"] },
-  { name: "Drug Interactions", nameBn: "ড্রাগ চেকার", href: "/interactions", icon: AlertCircle, roles: ["PATIENT", "GUARDIAN"] },
-  { name: "Lifestyle", nameBn: "লাইফস্টাইল", href: "/lifestyle", icon: Apple, roles: ["PATIENT", "GUARDIAN"] },
-  { name: "Guardian", nameBn: "অভিভাবক", href: "/guardian", icon: Users, roles: ["GUARDIAN"] },
-  { name: "Emergency", nameBn: "জরুরি সেবা", href: "/emergency", icon: PhoneCall, roles: ["PATIENT", "GUARDIAN"] },
-  { name: "Profile", nameBn: "প্রোফাইল", href: "/profile", icon: User, roles: ["PATIENT", "GUARDIAN"] },
-
-  // Doctor-only navigation
-  { name: "Doctor Patients", nameBn: "রোগী ব্যবস্থাপনা", href: "/doctor/patients", icon: Users, roles: ["DOCTOR"] },
-  { name: "Doctor Prescriptions", nameBn: "প্রেসক্রিপশন", href: "/doctor/prescriptions", icon: FileText, roles: ["DOCTOR"] },
-  { name: "Doctor Records", nameBn: "স্বাস্থ্য রেকর্ড", href: "/doctor/records", icon: Activity, roles: ["DOCTOR"] },
-  { name: "Doctor Appointments", nameBn: "অ্যাপয়েন্টমেন্ট", href: "/doctor/appointments", icon: Calendar, roles: ["DOCTOR"] },
-  { name: "Doctor Emergency", nameBn: "জরুরি বিভাগ", href: "/doctor/emergency", icon: Ambulance, roles: ["DOCTOR"] },
-  { name: "Doctor Profile", nameBn: "ডাক্তার প্রোফাইল", href: "/doctor/profile", icon: Settings, roles: ["DOCTOR"] },
+  { key: "sidebar.dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
+  { key: "sidebar.medicines", href: "/medicines", icon: Pill, roles: ["PATIENT", "GUARDIAN"] },
+  { key: "sidebar.prescriptions", href: "/prescriptions", icon: Scan, roles: ["PATIENT"] },
+  { key: "sidebar.ai", href: "/assistant", icon: Bot, roles: ["PATIENT", "GUARDIAN", "DOCTOR"] },
+  { key: "sidebar.records", href: "/records", icon: Activity, roles: ["PATIENT", "GUARDIAN"] },
+  { key: "sidebar.myDoctors", href: "/my-doctors", icon: Stethoscope, roles: ["PATIENT"] },
+  { key: "sidebar.medicineHistory", href: "/medicine-history", icon: Clock, roles: ["PATIENT", "GUARDIAN"] },
+  { key: "sidebar.appointments", href: "/appointments", icon: Calendar, roles: ["PATIENT"] },
+  { key: "sidebar.hospitals", href: "/hospitals", icon: MapPin, roles: ["PATIENT", "GUARDIAN"] },
+  { key: "sidebar.drugChecker", href: "/interactions", icon: AlertCircle, roles: ["PATIENT", "GUARDIAN"] },
+  { key: "sidebar.lifestyle", href: "/lifestyle", icon: Apple, roles: ["PATIENT", "GUARDIAN"] },
+  { key: "sidebar.guardian", href: "/guardian", icon: Users, roles: ["GUARDIAN"] },
+  { key: "sidebar.emergency", href: "/emergency", icon: PhoneCall, roles: ["PATIENT", "GUARDIAN"] },
+  { key: "sidebar.profile", href: "/profile", icon: User, roles: ["PATIENT", "GUARDIAN"] },
+  { key: "sidebar.doctorPatients", href: "/doctor/patients", icon: Users, roles: ["DOCTOR"] },
+  { key: "sidebar.doctorPrescriptions", href: "/doctor/prescriptions", icon: FileText, roles: ["DOCTOR"] },
+  { key: "sidebar.doctorRecords", href: "/doctor/records", icon: Activity, roles: ["DOCTOR"] },
+  { key: "sidebar.doctorAppointments", href: "/doctor/appointments", icon: Calendar, roles: ["DOCTOR"] },
+  { key: "sidebar.doctorEmergency", href: "/doctor/emergency", icon: Ambulance, roles: ["DOCTOR"] },
+  { key: "sidebar.doctorProfile", href: "/doctor/profile", icon: Settings, roles: ["DOCTOR"] },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const { t } = useI18n()
   const [collapsed, setCollapsed] = useState(false)
   const role = (session?.user?.role as string) || "PATIENT"
 
@@ -98,7 +97,7 @@ export function Sidebar() {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
           return (
             <Link
-              key={item.name}
+              key={item.key}
               href={item.href}
               className={cn(
                 "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
@@ -108,7 +107,7 @@ export function Sidebar() {
               )}
             >
               <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-[#F96801]")} />
-              {!collapsed && <span className="truncate">{item.nameBn}</span>}
+              {!collapsed && <span className="truncate">{t(item.key)}</span>}
             </Link>
           )
         })}

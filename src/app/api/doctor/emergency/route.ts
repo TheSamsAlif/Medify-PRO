@@ -36,3 +36,22 @@ export async function GET() {
 
   return NextResponse.json(patients)
 }
+
+export async function DELETE(req: Request) {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "DOCTOR") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { id } = await req.json()
+  if (!id) {
+    return NextResponse.json({ error: "Alert ID required" }, { status: 400 })
+  }
+
+  await prisma.sOSAlert.update({
+    where: { id },
+    data: { status: "RESOLVED" },
+  })
+
+  return NextResponse.json({ message: "Alert resolved" })
+}

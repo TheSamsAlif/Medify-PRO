@@ -19,9 +19,11 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Sidebar } from "@/components/layout/sidebar"
 import { toast } from "sonner"
+import { useI18n } from "@/lib/i18n"
 
 export function TopBar() {
   const { data: session } = useSession()
+  const { t } = useI18n()
   const pathname = usePathname()
   const [notifications, setNotifications] = useState<any[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -66,7 +68,7 @@ export function TopBar() {
     for (const n of notifications.filter(n => !n.read)) {
       await markAsRead(n.id)
     }
-    toast.success("সব নোটিফিকেশন পড়া হয়েছে")
+    toast.success(t("nav.markAllRead"))
   }
 
   const formatDate = (d: unknown) => {
@@ -80,26 +82,7 @@ export function TopBar() {
     }
   }
 
-  const pageTitles: Record<string, string> = {
-    "/dashboard": "ড্যাশবোর্ড",
-    "/my-doctors": "আমার ডাক্তার",
-    "/medicine-history": "ওষুধের ইতিহাস",
-    "/medicines": "ওষুধসমূহ",
-    "/prescriptions": "প্রেসক্রিপশন",
-    "/assistant": "AI স্বাস্থ্য সহায়ক",
-    "/records": "স্বাস্থ্য রেকর্ড",
-    "/guardian": "অভিভাবক ড্যাশবোর্ড",
-    "/doctor": "ডাক্তার ড্যাশবোর্ড",
-    "/appointments": "অ্যাপয়েন্টমেন্ট",
-    "/hospitals": "নিকটস্থ হাসপাতাল",
-    "/emergency": "জরুরি সেবা",
-    "/profile": "প্রোফাইল",
-    "/sos": "SOS",
-    "/interactions": "ড্রাগ ইন্টারঅ্যাকশন চেকার",
-    "/lifestyle": "স্বাস্থ্যকর জীবনযাপন",
-  }
-
-  const currentTitle = pageTitles[pathname] || "Medify"
+  const currentTitle = t("nav.dashboard")
 
   return (
     <header className="fixed top-0 left-0 right-0 z-30 lg:pl-64 nav-glass">
@@ -120,7 +103,7 @@ export function TopBar() {
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A5ABB0]" />
             <Input
-              placeholder="সার্চ করুন..."
+              placeholder={t("nav.search")}
               className="pl-9 h-9 rounded-full bg-white/[.04] border border-white/[.08] text-sm text-[#EFF2F2] placeholder:text-[#A5ABB0] focus:border-[#F96801]/50"
             />
           </div>
@@ -140,10 +123,10 @@ export function TopBar() {
               <DropdownMenuGroup>
                 <DropdownMenuLabel>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">নোটিফিকেশন</span>
+                    <span className="text-sm font-medium">{t("nav.notifications")}</span>
                     {unreadCount > 0 && (
                       <span onClick={markAllRead} className="text-xs text-[#25C2C3] hover:underline cursor-pointer">
-                        সব পড়া হয়েছে
+                        {t("nav.markAllRead")}
                       </span>
                     )}
                   </div>
@@ -156,7 +139,7 @@ export function TopBar() {
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="py-8 text-center text-sm text-[#A5ABB0]">
-                  কোনো নোটিফিকেশন নেই
+                  {t("nav.noNotifications")}
                 </div>
               ) : (
                 notifications.slice(0, 20).map((n) => (
@@ -209,14 +192,14 @@ export function TopBar() {
               </DropdownMenuGroup>
               <DropdownMenuSeparator className="bg-white/[.06]" />
               <DropdownMenuItem className="focus:bg-[#F96801]/12 focus:text-[#F96801]" onClick={() => window.location.href = "/profile"}>
-                প্রোফাইল
+                {t("nav.profile")}
               </DropdownMenuItem>
               <DropdownMenuItem className="focus:bg-[#F96801]/12 focus:text-[#F96801]" onClick={() => window.location.href = "/dashboard"}>
-                ড্যাশবোর্ড
+                {t("nav.dashboard")}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/[.06]" />
               <DropdownMenuItem className="text-[#f87171] focus:bg-[#f87171]/12" onClick={() => signOut({ callbackUrl: "/auth/login" })}>
-                সাইন আউট
+                {t("nav.signOut")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

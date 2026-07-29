@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { AlertTriangle, Phone, MapPin, Clock, Heart, Droplets, User, ChevronRight, RefreshCw } from "lucide-react"
+import { AlertTriangle, Phone, MapPin, Clock, Heart, Droplets, User, ChevronRight, RefreshCw, Trash2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -27,6 +27,14 @@ export default function DoctorEmergency() {
   }
 
   const priorityColor = (p: string) => p === "CRITICAL" ? "text-red-400 bg-red-500/20" : "text-amber-400 bg-amber-500/20"
+
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch("/api/doctor/emergency", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) })
+      if (res.ok) { toast.success("রিকোয়েস্ট সরানো হয়েছে"); fetchEmergencies() }
+      else toast.error("সরাতে সমস্যা হয়েছে")
+    } catch { toast.error("নেটওয়ার্ক ত্রুটি") }
+  }
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
@@ -89,6 +97,7 @@ export default function DoctorEmergency() {
                         <Button variant="outline" className="border-red-500/30 text-red-400 rounded-xl text-xs"><Heart className="w-4 h-4 mr-1" /> ইমারজেন্সি</Button>
                       </a>
                     )}
+                    <Button variant="ghost" onClick={() => handleDelete(e.id)} className="text-red-500/50 hover:text-red-400 h-8 w-8 p-0"><Trash2 className="w-4 h-4" /></Button>
                   </div>
                 </div>
               </CardContent>
