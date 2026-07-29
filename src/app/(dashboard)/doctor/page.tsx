@@ -37,7 +37,8 @@ export default function DoctorDashboard() {
     { icon: Clock, label: t("doctor.pendingPrescriptions"), value: stats?.pendingPrescriptions ?? 0, color: "from-amber-500 to-orange-500", href: "/doctor/prescriptions" },
     { icon: AlertTriangle, label: t("doctor.emergencyAlerts"), value: stats?.emergencyCases ?? 0, color: "from-red-500 to-rose-600", href: "/doctor/emergency" },
     { icon: CheckCircle2, label: t("doctor.completedAppointments"), value: stats?.completedAppointments ?? 0, color: "from-emerald-500 to-green-600", href: "/doctor/appointments" },
-    { icon: Activity, label: "সক্রিয় রোগী", value: stats?.totalPatients ?? 0, color: "from-violet-500 to-purple-600", href: "/doctor/patients" },
+    { icon: Activity, label: "আগামী অ্যাপয়েন্টমেন্ট", value: stats?.upcomingAppointments ?? 0, color: "from-violet-500 to-purple-600", href: "/doctor/appointments" },
+    { icon: TrendingUp, label: "রোগী সন্তুষ্টি", value: stats?.satisfaction ? `${stats.satisfaction}%` : "-", color: "from-pink-500 to-rose-600", href: "/doctor/appointments" },
   ]
 
   const weeklyData = stats?.weeklyStats?.labels?.map((label: string, i: number) => ({

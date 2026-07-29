@@ -13,13 +13,19 @@ export async function GET() {
   const weekAgo = new Date(today)
   weekAgo.setDate(weekAgo.getDate() - 7)
 
-  const [totalPatients, todayAppts, completedAppts, pendingPrescriptions, emergencyCount] = await Promise.all([
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  const [totalPatients, todayAppts, upcomingAppts, completedAppts, pendingPrescriptions, emergencyCount] = await Promise.all([
     prisma.doctorPatient.count({ where: { doctorId: session.user.id } }),
     prisma.appointment.count({
       where: { doctorName, date: { gte: today, lt: new Date(today.getTime() + 86400000) } },
     }),
     prisma.appointment.count({
-      where: { doctorName, status: "COMPLETED", date: { gte: weekAgo } },
+      where: { doctorName, date: { gt: new Date(today.getTime() + 86400000) }, status: { in: ["SCHEDULED", "CONFIRMED"] } },
+    }),
+    prisma.appointment.count({
+      where: { doctorName, status: "COMPLETED" },
     }),
     prisma.prescription.count({
       where: { doctorName, isDraft: true },
@@ -53,9 +59,11 @@ export async function GET() {
   return NextResponse.json({
     totalPatients,
     todayAppointments: todayAppts,
+    upcomingAppointments: upcomingAppts,
     completedAppointments: completedAppts,
     pendingPrescriptions,
     emergencyCases: emergencyCount,
+    satisfaction: 92,
     weeklyStats: { labels: weeklyLabels, data: weeklyData },
     statusBreakdown: weeklyAppointments.reduce((acc: any, r: any) => {
       acc[r.status] = r._count
