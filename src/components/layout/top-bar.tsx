@@ -99,7 +99,7 @@ export function TopBar() {
               <Menu className="w-5 h-5" />
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-72 bg-transparent border-r border-white/[.06] pt-safe">
-              <Sidebar onNavClick={() => setSheetOpen(false)} />
+              <Sidebar mobile onNavClick={() => setSheetOpen(false)} />
             </SheetContent>
           </Sheet>
           <h1 className="text-lg font-bold text-[#EFF2F2]">{currentTitle}</h1>

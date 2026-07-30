@@ -65,7 +65,7 @@ const navigation = [
   { key: "sidebar.adminFeedback", href: "/admin/feedback", icon: Heart, roles: ["ADMIN"] },
 ]
 
-export function Sidebar({ onNavClick }: { onNavClick?: () => void }) {
+export function Sidebar({ onNavClick, mobile }: { onNavClick?: () => void; mobile?: boolean }) {
   const pathname = usePathname()
   const { data: session } = useSession()
   const { t } = useI18n()
@@ -77,7 +77,9 @@ export function Sidebar({ onNavClick }: { onNavClick?: () => void }) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-full sidebar-glass transition-all duration-300 hidden lg:flex flex-col",
+        mobile
+          ? "flex flex-col sidebar-glass transition-all duration-300"
+          : "fixed left-0 top-0 z-40 h-full sidebar-glass transition-all duration-300 hidden lg:flex flex-col",
         collapsed ? "w-20" : "w-64"
       )}
     >
