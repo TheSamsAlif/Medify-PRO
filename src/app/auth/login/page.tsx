@@ -44,12 +44,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#040406]">
-      <div className="fixed inset-0 z-[-4]">
-        <div className="aurora-blob w-[500px] h-[500px] bg-[#F96801]/15 top-[-10%] left-[-5%] animate-aurora-1" />
-        <div className="aurora-blob w-[400px] h-[400px] bg-[#DE1B2D]/10 top-[40%] right-[-8%] animate-aurora-2" />
-      </div>
-      <div className="fixed inset-0 z-[-3] tech-grid" />
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
         className="w-full max-w-md px-4 relative z-10">
@@ -57,7 +52,7 @@ export default function LoginPage() {
           <ArrowLeft className="w-4 h-4" /> হোম পেজে ফিরুন
         </Link>
 
-        <Card className="border border-white/[.08] bg-[#0a0d16] backdrop-blur-xl shadow-2xl shadow-black/50">
+        <Card className="glass bg-transparent border border-white/[.12] shadow-2xl">
           <CardHeader className="text-center pb-2">
             <div className="flex justify-center mb-4">
               <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-[#F96801]/30">
@@ -76,18 +71,18 @@ export default function LoginPage() {
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A5ABB0]" />
                   <Input id="email" type="email" placeholder="your@email.com"
                     value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="pl-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-[#EFF2F2] placeholder:text-[#A5ABB0] focus:border-[#F96801]/50"
+                    className="pl-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
                     required autoComplete="email" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-[#A5ABB0]">পাসওয়ার্ড</Label>
+                <Label htmlFor="password" className="text-muted-foreground">পাসওয়ার্ড</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A5ABB0]" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••"
                     value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="pl-11 pr-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-[#EFF2F2] placeholder:text-[#A5ABB0] focus:border-[#F96801]/50"
+                    className="pl-11 pr-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
                     required autoComplete="current-password" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A5ABB0] hover:text-[#EFF2F2]">

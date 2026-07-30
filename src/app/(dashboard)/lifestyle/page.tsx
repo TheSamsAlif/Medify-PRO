@@ -142,7 +142,7 @@ export default function LifestylePage() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-4 mb-8">
-        <Card className="border-0 shadow-lg shadow-black/5 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-gray-950">
+        <Card className="glass-card bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-gray-950">
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <Droplets className="w-8 h-8 text-blue-500" />
@@ -164,7 +164,7 @@ export default function LifestylePage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg shadow-black/5 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-gray-950">
+        <Card className="glass-card bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-gray-950">
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <Dumbbell className="w-8 h-8 text-emerald-500" />
@@ -188,7 +188,7 @@ export default function LifestylePage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg shadow-black/5 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-gray-950">
+        <Card className="glass-card bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-gray-950">
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <Apple className="w-8 h-8 text-amber-500" />
@@ -291,7 +291,7 @@ function DietPlanner({ dietEntries, onAdd }: { dietEntries: DietEntry[]; onAdd: 
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
-      <Card className="border-0 shadow-lg shadow-black/5">
+      <Card className="glass-card">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Plus className="w-5 h-5 text-primary" />
@@ -347,7 +347,7 @@ function DietPlanner({ dietEntries, onAdd }: { dietEntries: DietEntry[]; onAdd: 
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-lg shadow-black/5">
+      <Card className="glass-card">
         <CardHeader>
           <CardTitle className="text-lg">আজকের খাবারের তালিকা</CardTitle>
         </CardHeader>
@@ -363,7 +363,7 @@ function DietPlanner({ dietEntries, onAdd }: { dietEntries: DietEntry[]; onAdd: 
                 const meal = MEAL_TYPES.find((m) => m.value === entry.mealType)
                 const Icon = meal?.icon || Apple
                 return (
-                  <div key={entry.id} className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-900">
+                  <div key={entry.id} className="flex items-start gap-3 p-3 rounded-xl glass">
                     <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${meal?.color || "from-gray-400 to-gray-500"} p-2 flex-shrink-0`}>
                       <Icon className="w-full h-full text-white" />
                     </div>
@@ -409,7 +409,7 @@ function WaterTracker({
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <Card className="border-0 shadow-lg shadow-black/5 text-center">
+      <Card className="glass-card text-center">
         <CardContent className="p-8">
           <Droplets className="w-16 h-16 text-blue-500 mx-auto mb-4" />
           <h3 className="text-4xl font-bold text-blue-600">{currentIntake}ml</h3>
@@ -456,7 +456,7 @@ function ExerciseTracker({
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <Card className="border-0 shadow-lg shadow-black/5 text-center">
+      <Card className="glass-card text-center">
         <CardContent className="p-8">
           <Dumbbell className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
           <h3 className="text-4xl font-bold text-emerald-600">{total} মিনিট</h3>
@@ -472,7 +472,7 @@ function ExerciseTracker({
             <div className="mt-8 text-left space-y-2">
               <p className="text-sm font-medium">ব্যায়ামের লগ</p>
               {logs.map((log) => (
-                <div key={log.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900">
+                <div key={log.id} className="flex items-center justify-between p-3 rounded-xl glass">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gray-400" />
                     <span className="text-sm">{log.value} মিনিট</span>

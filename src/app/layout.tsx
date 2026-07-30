@@ -60,13 +60,8 @@ export default function RootLayout({
       lang="bn"
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} dark`}
     >
-      <body className="min-h-full flex flex-col">
-        <div className="fixed inset-0 z-[-4]">
-          <div className="aurora-blob w-[500px] h-[500px] bg-[#F96801]/15 top-[-10%] left-[-5%] animate-aurora-1" />
-          <div className="aurora-blob w-[400px] h-[400px] bg-[#DE1B2D]/10 top-[40%] right-[-8%] animate-aurora-2" />
-          <div className="aurora-blob w-[350px] h-[350px] bg-[#25C2C3]/10 bottom-[-5%] left-[30%] animate-aurora-3" />
-        </div>
-        <div className="fixed inset-0 z-[-3] tech-grid" />
+      <body>
+        <div className="fixed-bg" />
         <div className="noise-overlay" />
         <Providers>
           {children}

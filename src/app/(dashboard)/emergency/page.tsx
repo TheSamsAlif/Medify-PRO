@@ -73,7 +73,7 @@ export default function EmergencyPage() {
 
       <div className="grid gap-6 md:grid-cols-2 mb-8">
         <Link href="/hospitals">
-          <Card className="border-0 shadow-lg shadow-black/5 bg-gradient-to-br from-blue-500 to-indigo-600 text-white hover:scale-[1.02] transition-transform cursor-pointer">
+          <Card className="glass-card bg-gradient-to-br from-blue-500 to-indigo-600 text-white hover:scale-[1.02] transition-transform cursor-pointer">
             <CardContent className="p-6 flex items-center gap-4">
               <Building className="w-10 h-10 text-white/80" />
               <div className="flex-1">
@@ -85,14 +85,14 @@ export default function EmergencyPage() {
           </Card>
         </Link>
         <div className="grid grid-cols-2 gap-4">
-          <Card className="border-0 shadow-lg shadow-black/5 bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+          <Card className="glass-card bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
             <CardContent className="p-4 text-center">
               <Ambulance className="w-8 h-8 mx-auto mb-2 text-white/80" />
               <p className="font-bold text-lg">16263</p>
               <p className="text-xs text-white/80">আম্বুলেন্স</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-lg shadow-black/5 bg-gradient-to-br from-amber-500 to-orange-600 text-white">
+          <Card className="glass-card bg-gradient-to-br from-amber-500 to-orange-600 text-white">
             <CardContent className="p-4 text-center">
               <Flask className="w-8 h-8 mx-auto mb-2 text-white/80" />
               <p className="font-bold text-lg">16263</p>
@@ -106,7 +106,7 @@ export default function EmergencyPage() {
       <div className="grid md:grid-cols-2 gap-4">
         {loading
           ? [1, 2, 3, 4].map((i) => (
-              <Card key={i} className="border-0 shadow-lg shadow-black/5">
+              <Card key={i} className="glass-card">
                 <CardContent className="p-4">
                   <Skeleton className="h-5 w-32 mb-2" />
                   <Skeleton className="h-8 w-24" />
@@ -120,7 +120,7 @@ export default function EmergencyPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
               >
-                <Card className="border-0 shadow-lg shadow-black/5 hover:shadow-xl transition-shadow">
+                <Card className="glass-card hover:shadow-xl transition-shadow">
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">

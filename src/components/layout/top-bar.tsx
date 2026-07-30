@@ -85,14 +85,14 @@ export function TopBar() {
   const currentTitle = t("nav.dashboard")
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 lg:pl-64 nav-glass">
+    <header className="fixed top-0 left-0 right-0 z-30 lg:pl-64 nav-glass py-1">
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center gap-3">
           <Sheet>
             <SheetTrigger className="lg:hidden rounded-full w-9 h-9 flex items-center justify-center text-[#A5ABB0] hover:text-[#EFF2F2] hover:bg-white/[.06] transition-colors">
               <Menu className="w-5 h-5" />
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-72 bg-[#040406] border-r border-white/[.06]">
+            <SheetContent side="left" className="p-0 w-72 bg-transparent border-r border-white/[.06]">
               <Sidebar />
             </SheetContent>
           </Sheet>
@@ -119,7 +119,7 @@ export function TopBar() {
                 </span>
               )}
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-h-96 overflow-y-auto">
+            <DropdownMenuContent align="end" className="w-80 glass border border-white/[.12] text-[#EFF2F2] max-h-96 overflow-y-auto shadow-2xl">
               <DropdownMenuGroup>
                 <DropdownMenuLabel>
                   <div className="flex items-center justify-between">
@@ -181,7 +181,7 @@ export function TopBar() {
                   </AvatarFallback>
                 </Avatar>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2]">
+            <DropdownMenuContent align="end" className="w-56 glass border border-white/[.12] text-[#EFF2F2] shadow-2xl">
               <DropdownMenuGroup>
                 <DropdownMenuLabel>
                   <div className="flex flex-col">

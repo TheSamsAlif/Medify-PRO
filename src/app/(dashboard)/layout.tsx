@@ -16,8 +16,8 @@ export default function DashboardLayout({
 
   if (status === "loading") {
     return (
-      <div className="app-bg flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-4 glass px-12 py-10">
           <div className="w-10 h-10 border-2 border-[#F96801] border-t-transparent rounded-full animate-spin" />
           <span className="text-sm text-[#A5ABB0] font-mono">Loading...</span>
         </div>
@@ -30,18 +30,16 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="app-bg">
+    <div className="flex flex-col lg:flex-row">
       <Sidebar />
-      <div className="lg:pl-64">
+      <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
         <TopBar />
-        <main className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-24 pb-24">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 pt-16 lg:pt-20 pb-24">
           {children}
         </main>
-        <footer className="border-t border-white/[.06] glass py-4 lg:ml-0">
-          <p className="text-center text-sm font-semibold gradient-text">
-            Developed by Sams Alif
-          </p>
-        </footer>
+        <p className="text-center text-sm font-semibold gradient-text pb-5">
+          Developed by Sams Alif
+        </p>
       </div>
       <MobileNav />
     </div>

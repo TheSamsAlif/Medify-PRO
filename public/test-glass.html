@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSS Test</title>
+    <style>
+        .app-bg {
+            background: linear-gradient(to bottom, #060b14 0%, #0a1220 40%, #0d1a2d 70%, #0f1f35 100%);
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        .app-bg::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: 
+                radial-gradient(ellipse 120% 25% at 50% 100%, rgba(10,18,32,0.95) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 15% at 20% 100%, rgba(8,12,22,0.9) 0%, transparent 60%),
+                radial-gradient(ellipse 70% 18% at 80% 100%, rgba(8,12,22,0.9) 0%, transparent 60%);
+        }
+        
+        .glass {
+            background: rgba(18,25,38,0.22);
+            backdrop-filter: blur(30px) saturate(150%);
+            -webkit-backdrop-filter: blur(30px) saturate(150%);
+            border: 1px solid rgba(255,255,255,.12);
+            box-shadow: 0 8px 40px rgba(0,0,0,.35);
+            border-radius: 24px;
+            padding: 20px;
+            color: white;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-bg">
+        <div class="glass">
+            <h1>Test Glassmorphism</h1>
+            <p>This should have a glass effect with mountain background</p>
+        </div>
+    </div>
+</body>
+</html>

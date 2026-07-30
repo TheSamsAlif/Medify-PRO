@@ -226,27 +226,27 @@ export default function HospitalsPage() {
     <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4">
       <div className="lg:w-[420px] xl:w-[480px] flex flex-col gap-4 overflow-hidden">
         <div>
-          <h2 className="text-xl font-bold text-[#EFF2F2]">নিকটস্থ হাসপাতাল</h2>
-          <p className="text-sm text-[#A5ABB0] mt-0.5">OpenStreetMap - সম্পূর্ণ ফ্রি, কোনো API key লাগবে না</p>
+          <h2 className="text-xl font-bold text-foreground">নিকটস্থ হাসপাতাল</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">OpenStreetMap - সম্পূর্ণ ফ্রি, কোনো API key লাগবে না</p>
         </div>
 
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A5ABB0] z-10" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
             <Input
               placeholder="ঠিকানা সার্চ করুন..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") debouncedSearchPlace(search) }}
-              className="pl-9 h-10 text-sm bg-white/[.04] border border-white/[.08] text-[#EFF2F2] placeholder:text-[#A5ABB0] rounded-xl"
+              className="pl-9 h-10 text-sm glass border border-white/[.08] text-foreground placeholder:text-muted-foreground rounded-xl"
             />
           </div>
           <Button onClick={() => fetchHospitals(userLocation?.[0], userLocation?.[1])} disabled={loading}
-            className="h-10 px-3 rounded-xl glass text-[#A5ABB0] hover:text-[#EFF2F2]">
+            className="h-10 px-3 rounded-xl glass text-muted-foreground hover:text-foreground">
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Button onClick={toggleTracking}
-            className={`h-10 w-10 p-0 rounded-xl ${tracking ? "bg-[#F96801] text-[#160500]" : "glass text-[#A5ABB0]"}`}>
+            className={`h-10 w-10 p-0 rounded-xl ${tracking ? "bg-[#F96801] text-[#160500]" : "glass text-muted-foreground"}`}>
             <Crosshair className={`w-4 h-4 ${tracking ? "animate-pulse" : ""}`} />
           </Button>
         </div>
@@ -259,7 +259,7 @@ export default function HospitalsPage() {
         )}
 
         <Tabs value={filter} onValueChange={setFilter}>
-          <TabsList className="rounded-xl p-1 bg-white/[.04] border border-white/[.08]">
+          <TabsList className="rounded-xl p-1 glass border border-white/[.08]">
             <TabsTrigger value="all" className="rounded-lg text-xs data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500]">সব</TabsTrigger>
             <TabsTrigger value="hospital" className="rounded-lg text-xs data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500]">হাসপাতাল</TabsTrigger>
             <TabsTrigger value="diagnostic" className="rounded-lg text-xs data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500]">ডায়াগনস্টিক</TabsTrigger>
@@ -269,13 +269,13 @@ export default function HospitalsPage() {
 
         <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
           {loading ? (
-            [1,2,3,4].map(i => <Skeleton key={i} className="h-28 w-full rounded-2xl bg-white/[.04]" />)
+            [1,2,3,4].map(i => <Skeleton key={i} className="h-28 w-full rounded-2xl glass" />)
           ) : displayedHospitals.length === 0 ? (
             <div className="text-center py-12">
               <MapPin className="w-12 h-12 text-[#2B3856] mx-auto mb-3" />
-              <p className="text-[#A5ABB0] text-sm">কোনো হাসপাতাল পাওয়া যায়নি</p>
+              <p className="text-muted-foreground text-sm">কোনো হাসপাতাল পাওয়া যায়নি</p>
               <Button variant="outline" size="sm" onClick={() => fetchHospitals(userLocation?.[0], userLocation?.[1])}
-                className="mt-4 text-xs rounded-xl border-white/[.1] text-[#A5ABB0]">
+                className="mt-4 text-xs rounded-xl border-white/[.1] text-muted-foreground">
                 <RefreshCw className="w-3 h-3 mr-1" /> আবার চেষ্টা করুন
               </Button>
             </div>
@@ -297,7 +297,7 @@ export default function HospitalsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-[#EFF2F2] truncate">{h.name}</h3>
+                      <h3 className="text-sm font-semibold text-foreground truncate">{h.name}</h3>
                       {h.rating && (
                         <div className="flex items-center gap-1 text-[#FBBF24] text-xs flex-shrink-0">
                           <Star className="w-3 h-3 fill-current" />
@@ -305,10 +305,10 @@ export default function HospitalsPage() {
                         </div>
                       )}
                     </div>
-                    <p className="text-xs text-[#A5ABB0] mt-0.5 line-clamp-1">{h.address || "ঠিকানা নেই"}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{h.address || "ঠিকানা নেই"}</p>
                     <div className="flex items-center gap-3 mt-2">
                       {h.distance !== undefined && (
-                        <span className="text-xs text-[#A5ABB0] flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
                           {h.distance.toFixed(1)} কিমি
                         </span>
@@ -388,11 +388,11 @@ export default function HospitalsPage() {
 
         {routeDist && (
           <div className="absolute bottom-4 left-4 right-4 z-[999]">
-            <Card className="bg-[#0a0d16]/90 backdrop-blur-xl border border-[#25C2C3]/30">
+            <Card className="glass border border-[#25C2C3]/30">
               <CardContent className="p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3 text-sm">
                   <Navigation className="w-4 h-4 text-[#25C2C3]" />
-                  <span className="text-[#EFF2F2]">{routeDist} · ETA: {eta}</span>
+                  <span className="text-foreground">{routeDist} · ETA: {eta}</span>
                 </div>
                 <Button size="sm" onClick={() => selected && getDirections(selected)}
                   className="gradient-primary text-[#160500] text-xs h-8">

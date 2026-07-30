@@ -134,3 +134,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { doctorId } = await req.json()
+    if (!doctorId) {
+      return NextResponse.json({ error: "doctorId required" }, { status: 400 })
+    }
+
+    const patient = await prisma.patient.findUnique({ where: { userId: session.user.id } })
+    if (!patient) {
+      return NextResponse.json({ error: "Patient not found" }, { status: 404 })
+    }
+
+    const link = await prisma.doctorPatient.findFirst({
+      where: { doctorId, patientId: patient.id },
+    })
+    if (!link) {
+      return NextResponse.json({ error: "ডাক্তার পাওয়া যায়নি" }, { status: 404 })
+    }
+
+    await prisma.doctorPatient.delete({ where: { id: link.id } })
+
+    return NextResponse.json({ message: "ডাক্তার সরানো হয়েছে" })
+  } catch (error) {
+    console.error("Patient doctors delete error:", error)
+    return NextResponse.json({ error: "Internal error" }, { status: 500 })
+  }
+}

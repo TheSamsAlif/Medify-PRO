@@ -99,7 +99,7 @@ export default function RecordsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
               >
-                <Card className="border-0 shadow-lg shadow-black/5 hover:shadow-xl transition-all">
+                <Card className="glass-card hover:shadow-xl transition-all">
                   <CardContent className="p-5">
                     <div className="flex items-center gap-4">
                       <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${color} p-2.5 flex-shrink-0`}>

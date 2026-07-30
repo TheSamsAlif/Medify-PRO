@@ -42,7 +42,7 @@ export function ThemeSettings({ open, onOpenChange }: ThemeSettingsProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-sm">
+      <DialogContent className="glass border border-white/[.12] text-[#EFF2F2] max-w-sm">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold gradient-text">অ্যাপের থিম</DialogTitle>
         </DialogHeader>

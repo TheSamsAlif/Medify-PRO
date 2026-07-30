@@ -110,7 +110,7 @@ export default function AppointmentsPage() {
                   const { date, time } = formatDate(apt.date)
                   return (
                     <motion.div key={apt.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-                      <Card className="border-0 shadow-lg shadow-black/5 hover:shadow-xl transition-shadow">
+                      <Card className="glass-card hover:shadow-xl transition-shadow">
                         <CardContent className="p-5">
                           <div className="flex items-start gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -160,7 +160,7 @@ export default function AppointmentsPage() {
                 {past.map(apt => {
                   const { date, time } = formatDate(apt.date)
                   return (
-                    <Card key={apt.id} className="border-0 shadow-sm bg-gray-50 dark:bg-gray-900">
+                    <Card key={apt.id} className="border-0 shadow-sm glass">
                       <CardContent className="p-4 opacity-70">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
@@ -194,15 +194,15 @@ export default function AppointmentsPage() {
       )}
 
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-        <AlertDialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-md">
+        <AlertDialogContent className="glass-card text-foreground max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>অ্যাপয়েন্টমেন্ট বাতিল করবেন?</AlertDialogTitle>
-            <AlertDialogDescription className="text-[#A5ABB0]">
+            <AlertDialogDescription className="text-muted-foreground">
               এই অ্যাপয়েন্টমেন্টটি স্থায়ীভাবে মুছে ফেলা হবে।
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-white/[.08] text-[#A5ABB0]">না</AlertDialogCancel>
+            <AlertDialogCancel className="border-white/[.08] text-muted-foreground">না</AlertDialogCancel>
             <AlertDialogAction className="bg-red-500 text-white hover:bg-red-600" onClick={() => deleteTarget && handleDelete(deleteTarget)}>
               হ্যাঁ, মুছুন
             </AlertDialogAction>

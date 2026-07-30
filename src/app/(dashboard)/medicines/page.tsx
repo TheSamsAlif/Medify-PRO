@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { useSearchParams } from "next/navigation"
 import {
@@ -13,11 +13,11 @@ import {
   BellOff,
   Trash2,
   Sun,
-  Moon,
   Sunset,
   MoonStar,
+  Palette,
 } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -25,11 +25,24 @@ import { toast } from "sonner"
 import { AddMedicineDialog } from "@/components/medical/add-medicine-dialog"
 import type { Medicine } from "@/types"
 
+const defaultSlotColors: Record<string, string> = {
+  morning: "#F59E0B",
+  noon: "#EAB308",
+  evening: "#EA580C",
+  night: "#8B5CF6",
+}
+
+const presetColors = [
+  "#F59E0B", "#EAB308", "#EA580C", "#8B5CF6",
+  "#06B6D4", "#10B981", "#EC4899", "#6366F1",
+  "#F97316", "#84CC16", "#14B8A6", "#E11D48",
+]
+
 const timeSlots = [
-  { key: "morning", label: "সকাল", labelEn: "Morning", icon: Sun, color: "from-amber-400 to-orange-500", time: "6:00 - 9:00" },
-  { key: "noon", label: "দুপুর", labelEn: "Noon", icon: Clock, color: "from-yellow-400 to-amber-500", time: "12:00 - 14:00" },
-  { key: "evening", label: "বিকাল", labelEn: "Evening", icon: Sunset, color: "from-orange-400 to-red-500", time: "17:00 - 19:00" },
-  { key: "night", label: "রাত", labelEn: "Night", icon: MoonStar, color: "from-indigo-400 to-purple-500", time: "21:00 - 23:00" },
+  { key: "morning", label: "সকাল", labelEn: "Morning", icon: Sun, defColor: "#F59E0B", time: "6:00 - 9:00" },
+  { key: "noon", label: "দুপুর", labelEn: "Noon", icon: Clock, defColor: "#EAB308", time: "12:00 - 14:00" },
+  { key: "evening", label: "বিকাল", labelEn: "Evening", icon: Sunset, defColor: "#EA580C", time: "17:00 - 19:00" },
+  { key: "night", label: "রাত", labelEn: "Night", icon: MoonStar, defColor: "#8B5CF6", time: "21:00 - 23:00" },
 ]
 
 export default function MedicinesPage() {
@@ -37,10 +50,35 @@ export default function MedicinesPage() {
   const [medicines, setMedicines] = useState<Medicine[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddDialog, setShowAddDialog] = useState(searchParams.get("add") === "true")
+  const [slotColors, setSlotColors] = useState<Record<string, string>>({})
+  const [pickerOpen, setPickerOpen] = useState<string | null>(null)
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  const getColor = (key: string) => slotColors[key] || defaultSlotColors[key]
 
   useEffect(() => {
+    const stored = localStorage.getItem("medicine-slot-colors")
+    if (stored) {
+      try { setSlotColors(JSON.parse(stored)) } catch { /* ignore */ }
+    }
     fetchMedicines()
   }, [])
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setPickerOpen(null)
+      }
+    }
+    if (pickerOpen) document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [pickerOpen])
+
+  const setColor = (slotKey: string, color: string) => {
+    const next = { ...slotColors, [slotKey]: color }
+    setSlotColors(next)
+    localStorage.setItem("medicine-slot-colors", JSON.stringify(next))
+  }
 
   const fetchMedicines = async () => {
     try {
@@ -128,7 +166,7 @@ export default function MedicinesPage() {
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="border-0 shadow-lg shadow-black/5">
+            <Card key={i} className="glass-card">
               <CardContent className="p-6">
                 <Skeleton className="h-6 w-48 mb-4" />
                 <div className="space-y-3">
@@ -145,6 +183,7 @@ export default function MedicinesPage() {
             const slotMedicines = getMedicinesForSlot(slot.key)
             if (slotMedicines.length === 0) return null
             const SlotIcon = slot.icon
+            const color = getColor(slot.key)
             return (
               <motion.div
                 key={slot.key}
@@ -152,26 +191,56 @@ export default function MedicinesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
               >
-                <Card className="border-0 shadow-lg shadow-black/5 overflow-hidden">
-                  <div className={`bg-gradient-to-r ${slot.color} p-4`}>
-                    <div className="flex items-center gap-3 text-white">
-                      <SlotIcon className="w-6 h-6" />
-                      <div>
-                        <h3 className="font-bold text-lg">{slot.label}</h3>
-                        <p className="text-white/80 text-sm">{slot.time}</p>
-                      </div>
-                      <Badge className="ml-auto bg-white/20 text-white border-0">
+                <Card className="glass-card overflow-hidden">
+                  <CardContent className="pt-4 pb-0">
+                    <div className="flex items-center gap-3 mb-3 relative">
+                      <button
+                        onClick={() => setPickerOpen(pickerOpen === slot.key ? null : slot.key)}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-white text-sm font-semibold transition-all hover:scale-105 active:scale-95"
+                        style={{ backgroundColor: color }}
+                      >
+                        <SlotIcon className="w-4 h-4" />
+                        <span>{slot.label}</span>
+                        <Palette className="w-3 h-3 opacity-60" />
+                      </button>
+                      <span className="text-xs text-muted-foreground">{slot.time}</span>
+                      <Badge className="ml-auto bg-white/[.08] text-muted-foreground border-0">
                         {slotMedicines.length}টি ওষুধ
                       </Badge>
+
+                      {pickerOpen === slot.key && (
+                        <div
+                          ref={pickerRef}
+                          className="absolute top-full left-0 mt-2 z-50 p-3 rounded-xl glass-card border border-white/[.12] shadow-xl flex gap-1.5 flex-wrap max-w-[240px]"
+                        >
+                          {presetColors.map((pc) => (
+                            <button
+                              key={pc}
+                              onClick={() => { setColor(slot.key, pc); setPickerOpen(null) }}
+                              className="w-7 h-7 rounded-lg border border-white/[.12] transition-transform hover:scale-110 active:scale-95"
+                              style={{ backgroundColor: pc }}
+                            />
+                          ))}
+                          <label className="w-7 h-7 rounded-lg border border-white/[.12] flex items-center justify-center cursor-pointer hover:bg-white/[.06]">
+                            <input
+                              type="color"
+                              value={color}
+                              onChange={(e) => { setColor(slot.key, e.target.value); setPickerOpen(null) }}
+                              className="w-0 h-0 opacity-0 absolute"
+                            />
+                            <span className="text-[10px] text-muted-foreground font-bold">+</span>
+                          </label>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  <CardContent className="p-4 space-y-3">
+                  </CardContent>
+                  <CardContent className="p-4 pt-0 space-y-3">
                     {slotMedicines.map((medicine) => (
                       <div
                         key={medicine.id}
-                        className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 group hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        className="flex items-center gap-4 p-4 rounded-xl glass group hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                       >
-                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${slot.color} p-2 flex-shrink-0`}>
+                        <div className="w-10 h-10 rounded-xl p-2 flex-shrink-0" style={{ backgroundColor: color }}>
                           <Pill className="w-full h-full text-white" />
                         </div>
                         <div className="flex-1 min-w-0">

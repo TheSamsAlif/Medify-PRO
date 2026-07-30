@@ -121,13 +121,13 @@ export default function DoctorPrescriptions() {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-[#EFF2F2]">{t("doctor.prescriptions")}</h2>
-          <p className="text-[#A5ABB0] mt-1">{t("doctor.managePrescriptions")}</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">{t("doctor.prescriptions")}</h2>
+          <p className="text-muted-foreground mt-1">{t("doctor.managePrescriptions")}</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-white/[.04] border border-white/[.08] p-1 rounded-xl mb-6">
+        <TabsList className="glass border border-white/[.08] p-1 rounded-xl mb-6">
           <TabsTrigger value="list" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("doctor.prescriptions")}</TabsTrigger>
           <TabsTrigger value="create" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("doctor.addPrescription")}</TabsTrigger>
           <TabsTrigger value="drafts" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("doctor.draft")}</TabsTrigger>
@@ -135,51 +135,51 @@ export default function DoctorPrescriptions() {
 
         <TabsContent value="list">
           <Select value={selectedPatientId} onValueChange={(v) => v !== null && setSelectedPatientId(v)}>
-            <SelectTrigger className="w-64 bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs mb-4">
+            <SelectTrigger className="w-64 glass border-white/[.08] text-foreground text-xs mb-4">
               <SelectValue placeholder={t("doctor.selectPatientHint")} />
             </SelectTrigger>
-            <SelectContent className="bg-[#0a0d16] border-white/[.08] text-[#EFF2F2]">
+            <SelectContent className="glass-card border-white/[.08] text-foreground">
               {patients.map(p => <SelectItem key={p.patientId} value={p.patientId}>{p.name}</SelectItem>)}
             </SelectContent>
           </Select>
 
           {loading ? (
-            <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl bg-white/[.04]" />)}</div>
+            <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl glass" />)}</div>
           ) : !selectedPatientId ? (
-            <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
-              <Pill className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-              <p className="text-[#A5ABB0] text-sm">{t("doctor.selectPatientView")}</p>
+            <Card className="border border-white/[.08] glass-card p-12 text-center">
+              <Pill className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+              <p className="text-muted-foreground text-sm">{t("doctor.selectPatientView")}</p>
             </Card>
           ) : prescriptions.length === 0 ? (
-            <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
-              <Pill className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-              <p className="text-[#A5ABB0] text-sm mb-4">{t("doctor.noPrescriptions")}</p>
+            <Card className="border border-white/[.08] glass-card p-12 text-center">
+              <Pill className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+              <p className="text-muted-foreground text-sm mb-4">{t("doctor.noPrescriptions")}</p>
               <Button onClick={() => setActiveTab("create")} className="gradient-primary text-[#160500] rounded-xl text-xs"><Plus className="w-4 h-4 mr-1" /> {t("doctor.addPrescription")}</Button>
             </Card>
           ) : (
             <div className="space-y-3">
               {prescriptions.filter(p => !p.isDraft).map((p, i) => (
-                <Card key={i} className="border border-white/[.08] bg-[#0a0d16]">
+                <Card key={i} className="border border-white/[.08] glass-card">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="text-xs text-[#A5ABB0]">{new Date(p.createdAt).toLocaleDateString("bn-BD")}</p>
-                          {p.hospitalName && <Badge className="bg-white/[.06] text-[#A5ABB0] text-xs">{p.hospitalName}</Badge>}
+                          <p className="text-xs text-muted-foreground">{new Date(p.createdAt).toLocaleDateString("bn-BD")}</p>
+                          {p.hospitalName && <Badge className="bg-white/[.06] text-muted-foreground text-xs">{p.hospitalName}</Badge>}
                         </div>
-                        {p.diagnosis && <p className="text-sm font-medium text-[#EFF2F2]">{p.diagnosis}</p>}
-                        {p.symptoms && <p className="text-xs text-[#A5ABB0] mt-0.5">{t("doctor.symptomsLabel").replace("{s}", p.symptoms)}</p>}
-                        {(p.bloodPressure || p.temperature) && <p className="text-xs text-[#A5ABB0]">{t("doctor.bpLabel").replace("{bp}", p.bloodPressure || "-").replace("{t}", p.temperature || "-")}</p>}
+                        {p.diagnosis && <p className="text-sm font-medium text-foreground">{p.diagnosis}</p>}
+                        {p.symptoms && <p className="text-xs text-muted-foreground mt-0.5">{t("doctor.symptomsLabel").replace("{s}", p.symptoms)}</p>}
+                        {(p.bloodPressure || p.temperature) && <p className="text-xs text-muted-foreground">{t("doctor.bpLabel").replace("{bp}", p.bloodPressure || "-").replace("{t}", p.temperature || "-")}</p>}
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge className="bg-[#25C2C3]/20 text-[#25C2C3] text-xs">{t("patients.prescriptionCount").replace("{n}", String(p.medicines?.length || 0))}</Badge>
-                        <Button variant="outline" size="sm" onClick={() => handlePrint(p)} className="rounded-xl text-xs border-white/[.08] text-[#A5ABB0] h-8 w-8 p-0"><Printer className="w-4 h-4" /></Button>
+                        <Button variant="outline" size="sm" onClick={() => handlePrint(p)} className="rounded-xl text-xs border-white/[.08] text-muted-foreground h-8 w-8 p-0"><Printer className="w-4 h-4" /></Button>
                       </div>
                     </div>
                     {p.medicines?.length > 0 && (
                       <div className="flex gap-2 flex-wrap mt-2">
                         {p.medicines.map((m: any, mi: number) => (
-                          <span key={mi} className="text-xs bg-white/[.04] text-[#A5ABB0] px-2 py-1 rounded-lg">{m.name} {m.dosage}</span>
+                          <span key={mi} className="text-xs glass text-muted-foreground px-2 py-1 rounded-lg">{m.name} {m.dosage}</span>
                         ))}
                       </div>
                     )}
@@ -192,52 +192,52 @@ export default function DoctorPrescriptions() {
         </TabsContent>
 
         <TabsContent value="create">
-          <Card className="border border-white/[.08] bg-[#0a0d16]">
+          <Card className="border border-white/[.08] glass-card">
             <CardHeader>
-              <CardTitle className="text-lg text-[#EFF2F2]">{t("doctor.addPrescription")}</CardTitle>
+              <CardTitle className="text-lg text-foreground">{t("doctor.addPrescription")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-3">
                 <Select value={form.patientId} onValueChange={(v) => v !== null && setForm({ ...form, patientId: v })}>
-                  <SelectTrigger className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs">
+                  <SelectTrigger className="glass border-white/[.08] text-foreground text-xs">
                     <SelectValue placeholder={t("doctor.selectPatient")} />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#0a0d16] border-white/[.08] text-[#EFF2F2]">
+                  <SelectContent className="glass-card border-white/[.08] text-foreground">
                     {patients.map(p => <SelectItem key={p.patientId} value={p.patientId}>{p.name} ({p.phone || ""})</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Input placeholder={t("doctor.hospitalName")} value={form.hospitalName} onChange={e => setForm({ ...form, hospitalName: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
+                <Input placeholder={t("doctor.hospitalName")} value={form.hospitalName} onChange={e => setForm({ ...form, hospitalName: e.target.value })} className="glass border-white/[.08] text-foreground text-xs" />
               </div>
 
               <div className="grid md:grid-cols-2 gap-3">
-                <Input placeholder={t("doctor.diagnosis")} value={form.diagnosis} onChange={e => setForm({ ...form, diagnosis: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
-                <Input placeholder={t("doctor.symptoms")} value={form.symptoms} onChange={e => setForm({ ...form, symptoms: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
+                <Input placeholder={t("doctor.diagnosis")} value={form.diagnosis} onChange={e => setForm({ ...form, diagnosis: e.target.value })} className="glass border-white/[.08] text-foreground text-xs" />
+                <Input placeholder={t("doctor.symptoms")} value={form.symptoms} onChange={e => setForm({ ...form, symptoms: e.target.value })} className="glass border-white/[.08] text-foreground text-xs" />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
-                <Input placeholder={t("doctor.bloodPressure")} value={form.bloodPressure} onChange={e => setForm({ ...form, bloodPressure: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
-                <Input placeholder={t("doctor.temperature")} value={form.temperature} onChange={e => setForm({ ...form, temperature: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
-                <Input placeholder={t("doctor.weight")} type="number" value={form.patientWeight} onChange={e => setForm({ ...form, patientWeight: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
+                <Input placeholder={t("doctor.bloodPressure")} value={form.bloodPressure} onChange={e => setForm({ ...form, bloodPressure: e.target.value })} className="glass border-white/[.08] text-foreground text-xs" />
+                <Input placeholder={t("doctor.temperature")} value={form.temperature} onChange={e => setForm({ ...form, temperature: e.target.value })} className="glass border-white/[.08] text-foreground text-xs" />
+                <Input placeholder={t("doctor.weight")} type="number" value={form.patientWeight} onChange={e => setForm({ ...form, patientWeight: e.target.value })} className="glass border-white/[.08] text-foreground text-xs" />
               </div>
 
-              <Textarea placeholder={t("doctor.notes")} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs min-h-[60px]" />
-              <Textarea placeholder={t("doctor.advice")} value={form.advice} onChange={e => setForm({ ...form, advice: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs min-h-[60px]" />
+              <Textarea placeholder={t("doctor.notes")} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="glass border-white/[.08] text-foreground text-xs min-h-[60px]" />
+              <Textarea placeholder={t("doctor.advice")} value={form.advice} onChange={e => setForm({ ...form, advice: e.target.value })} className="glass border-white/[.08] text-foreground text-xs min-h-[60px]" />
 
               <div className="grid md:grid-cols-2 gap-3">
-                <Input type="date" placeholder={t("doctor.followUp")} value={form.followUpDate} onChange={e => setForm({ ...form, followUpDate: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs" />
-                <Input placeholder={t("doctor.signature")} value={form.signature} onChange={e => setForm({ ...form, signature: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs font-mono" />
+                <Input type="date" placeholder={t("doctor.followUp")} value={form.followUpDate} onChange={e => setForm({ ...form, followUpDate: e.target.value })} className="glass border-white/[.08] text-foreground text-xs" />
+                <Input placeholder={t("doctor.signature")} value={form.signature} onChange={e => setForm({ ...form, signature: e.target.value })} className="glass border-white/[.08] text-foreground text-xs font-mono" />
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-[#EFF2F2]">{t("doctor.medicines")}</p>
+                  <p className="text-sm font-medium text-foreground">{t("doctor.medicines")}</p>
                   <Button type="button" variant="outline" size="sm" onClick={addMedicine} className="border-[#25C2C3]/30 text-[#25C2C3] rounded-xl text-xs"><Plus className="w-3 h-3 mr-1" /> {t("doctor.addMedicine")}</Button>
                 </div>
                 {form.medicines.map((med: any, idx: number) => (
-                  <div key={idx} className="p-3 rounded-xl bg-white/[.04] border border-white/[.08] space-y-2">
+                  <div key={idx} className="p-3 rounded-xl glass border border-white/[.08] space-y-2">
                     <div className="flex items-center gap-2">
-                      <Input placeholder={t("doctor.medicineName")} value={med.name} onChange={e => updateMedicine(idx, "name", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs flex-1" />
-                      <Input placeholder={t("doctor.dosage")} value={med.dosage} onChange={e => updateMedicine(idx, "dosage", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs w-20" />
+                      <Input placeholder={t("doctor.medicineName")} value={med.name} onChange={e => updateMedicine(idx, "name", e.target.value)} className="glass border-white/[.08] text-foreground text-xs flex-1" />
+                      <Input placeholder={t("doctor.dosage")} value={med.dosage} onChange={e => updateMedicine(idx, "dosage", e.target.value)} className="glass border-white/[.08] text-foreground text-xs w-20" />
                       <Button variant="ghost" size="icon" onClick={() => removeMedicine(idx)} className="text-red-400 h-7 w-7"><X className="w-3.5 h-3.5" /></Button>
                     </div>
                     <div className="flex items-center gap-2 text-xs flex-wrap">
@@ -245,15 +245,15 @@ export default function DoctorPrescriptions() {
                       <label className="flex items-center gap-1"><input type="checkbox" checked={med.noon} onChange={e => updateMedicine(idx, "noon", e.target.checked)} className="accent-[#F96801]" /> {t("doctor.noon")}</label>
                       <label className="flex items-center gap-1"><input type="checkbox" checked={med.evening} onChange={e => updateMedicine(idx, "evening", e.target.checked)} className="accent-[#F96801]" /> {t("doctor.evening")}</label>
                       <label className="flex items-center gap-1"><input type="checkbox" checked={med.night} onChange={e => updateMedicine(idx, "night", e.target.checked)} className="accent-[#F96801]" /> {t("doctor.night")}</label>
-                      <Input placeholder={t("doctor.frequency")} value={med.frequency} onChange={e => updateMedicine(idx, "frequency", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs w-16" />
-                      <Input placeholder={t("doctor.duration")} value={med.duration} onChange={e => updateMedicine(idx, "duration", e.target.value)} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs w-16" />
+                      <Input placeholder={t("doctor.frequency")} value={med.frequency} onChange={e => updateMedicine(idx, "frequency", e.target.value)} className="glass border-white/[.08] text-foreground text-xs w-16" />
+                      <Input placeholder={t("doctor.duration")} value={med.duration} onChange={e => updateMedicine(idx, "duration", e.target.value)} className="glass border-white/[.08] text-foreground text-xs w-16" />
                     </div>
                   </div>
                 ))}
               </div>
 
               <div className="flex gap-3 pt-2">
-                <Button onClick={() => handleSubmit(true)} disabled={loading} variant="outline" className="flex-1 border-white/[.08] text-[#A5ABB0] rounded-xl text-xs">
+                <Button onClick={() => handleSubmit(true)} disabled={loading} variant="outline" className="flex-1 border-white/[.08] text-muted-foreground rounded-xl text-xs">
                   <Save className="w-4 h-4 mr-1" /> {t("doctor.saveDraft")}
                 </Button>
                 <Button onClick={() => handleSubmit(false)} disabled={loading} className="flex-1 gradient-primary text-[#160500] rounded-xl text-xs">
@@ -266,19 +266,19 @@ export default function DoctorPrescriptions() {
 
         <TabsContent value="drafts">
           {drafts.length === 0 ? (
-            <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
-              <Save className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-              <p className="text-[#A5ABB0] text-sm">{t("doctor.noDrafts")}</p>
+            <Card className="border border-white/[.08] glass-card p-12 text-center">
+              <Save className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+              <p className="text-muted-foreground text-sm">{t("doctor.noDrafts")}</p>
             </Card>
           ) : (
             <div className="space-y-3">
               {drafts.map((d, i) => (
-                <Card key={i} className="border border-white/[.08] bg-[#0a0d16]">
+                <Card key={i} className="border border-white/[.08] glass-card">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-[#EFF2F2]">{d.diagnosis || t("doctor.noTitle")}</p>
-                        <p className="text-xs text-[#A5ABB0]">{new Date(d.updatedAt).toLocaleDateString("bn-BD")}</p>
+                        <p className="text-sm text-foreground">{d.diagnosis || t("doctor.noTitle")}</p>
+                        <p className="text-xs text-muted-foreground">{new Date(d.updatedAt).toLocaleDateString("bn-BD")}</p>
                       </div>
                       <Badge className="bg-amber-500/20 text-amber-400 text-xs">{t("doctor.draft")}</Badge>
                     </div>

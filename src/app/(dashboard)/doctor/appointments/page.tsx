@@ -61,19 +61,19 @@ export default function DoctorAppointments() {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-[#EFF2F2]">{t("doctor.appointments")}</h2>
-          <p className="text-[#A5ABB0] mt-1">{t("appointments.subtitle")}</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">{t("doctor.appointments")}</h2>
+          <p className="text-muted-foreground mt-1">{t("appointments.subtitle")}</p>
         </div>
-        <Button variant="outline" onClick={fetchAppts} className="border-white/[.08] text-[#A5ABB0] rounded-xl text-xs"><RefreshCw className="w-4 h-4 mr-1" /> {t("appointments.refresh")}</Button>
+        <Button variant="outline" onClick={fetchAppts} className="border-white/[.08] text-muted-foreground rounded-xl text-xs"><RefreshCw className="w-4 h-4 mr-1" /> {t("appointments.refresh")}</Button>
       </div>
 
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A5ABB0]" />
-        <Input placeholder={t("appointments.search")} value={search} onChange={e => setSearch(e.target.value)} className="pl-9 bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs w-full md:w-72" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input placeholder={t("appointments.search")} value={search} onChange={e => setSearch(e.target.value)} className="pl-9 glass border-white/[.08] text-foreground text-xs w-full md:w-72" />
       </div>
 
       <Tabs value={filter} onValueChange={setFilter}>
-        <TabsList className="bg-white/[.04] border border-white/[.08] p-1 rounded-xl mb-6">
+        <TabsList className="glass border border-white/[.08] p-1 rounded-xl mb-6">
           <TabsTrigger value="today" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("appointments.today")}</TabsTrigger>
           <TabsTrigger value="upcoming" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("appointments.upcoming")}</TabsTrigger>
           <TabsTrigger value="completed" className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">{t("appointments.completed")}</TabsTrigger>
@@ -82,16 +82,16 @@ export default function DoctorAppointments() {
 
         <TabsContent value={filter}>
           {loading ? (
-            <div className="space-y-2">{[1,2,3,4].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl bg-white/[.04]" />)}</div>
+            <div className="space-y-2">{[1,2,3,4].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl glass" />)}</div>
           ) : filtered.length === 0 ? (
-            <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
-              <Calendar className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-              <p className="text-[#A5ABB0] text-sm">{t("appointments.noAppointments")}</p>
+            <Card className="border border-white/[.08] glass-card p-12 text-center">
+              <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+              <p className="text-muted-foreground text-sm">{t("appointments.noAppointments")}</p>
             </Card>
           ) : (
             <div className="space-y-3">
               {filtered.map((a, i) => (
-                <Card key={i} className="border border-white/[.08] bg-[#0a0d16] hover:border-[#F96801]/30 transition-all cursor-pointer" onClick={() => setSelectedAppt(a)}>
+                <Card key={i} className="border border-white/[.08] glass-card hover:border-[#F96801]/30 transition-all cursor-pointer" onClick={() => setSelectedAppt(a)}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
                       <Avatar className="w-12 h-12 border border-white/[.08]">
@@ -99,16 +99,16 @@ export default function DoctorAppointments() {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-[#EFF2F2]">{a.patientName}</p>
-                          <Badge className={`text-xs ${statusColors[a.status] || "bg-white/[.06] text-[#A5ABB0]"}`}>{a.status}</Badge>
+                          <p className="font-medium text-foreground">{a.patientName}</p>
+                          <Badge className={`text-xs ${statusColors[a.status] || "bg-white/[.06] text-muted-foreground"}`}>{a.status}</Badge>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-[#A5ABB0] mt-0.5">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(a.date).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" })}</span>
                           <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(a.date).toLocaleDateString("bn-BD")}</span>
                           <span>{t("appointments.duration").replace("{n}", String(a.duration))}</span>
                         </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-[#A5ABB0]" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     </div>
                   </CardContent>
                 </Card>
@@ -120,7 +120,7 @@ export default function DoctorAppointments() {
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedAppt} onOpenChange={() => setSelectedAppt(null)}>
-        <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-lg">
+        <DialogContent className="glass-card border border-white/[.08] text-foreground max-w-lg">
           {selectedAppt && (
             <>
               <DialogHeader>
@@ -132,18 +132,18 @@ export default function DoctorAppointments() {
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-white/[.04] border border-white/[.08] text-sm">
-                  <div><span className="text-xs text-[#A5ABB0]">{t("appointments.date")}</span><p className="text-[#EFF2F2]">{new Date(selectedAppt.date).toLocaleDateString("bn-BD")}</p></div>
-                  <div><span className="text-xs text-[#A5ABB0]">{t("appointments.time")}</span><p className="text-[#EFF2F2]">{new Date(selectedAppt.date).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" })}</p></div>
-                  <div><span className="text-xs text-[#A5ABB0]">{t("appointments.durationLabel")}</span><p className="text-[#EFF2F2]">{t("appointments.duration").replace("{n}", String(selectedAppt.duration))}</p></div>
-                  <div><span className="text-xs text-[#A5ABB0]">{t("appointments.status")}</span><Badge className={`text-xs ${statusColors[selectedAppt.status]}`}>{selectedAppt.status}</Badge></div>
-                  {selectedAppt.specialty && <div><span className="text-xs text-[#A5ABB0]">{t("appointments.specialty")}</span><p className="text-[#EFF2F2]">{selectedAppt.specialty}</p></div>}
-                  {selectedAppt.hospitalName && <div><span className="text-xs text-[#A5ABB0]">{t("appointments.hospital")}</span><p className="text-[#EFF2F2]">{selectedAppt.hospitalName}</p></div>}
+                <div className="grid grid-cols-2 gap-2 p-3 rounded-xl glass border border-white/[.08] text-sm">
+                  <div><span className="text-xs text-muted-foreground">{t("appointments.date")}</span><p className="text-foreground">{new Date(selectedAppt.date).toLocaleDateString("bn-BD")}</p></div>
+                  <div><span className="text-xs text-muted-foreground">{t("appointments.time")}</span><p className="text-foreground">{new Date(selectedAppt.date).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" })}</p></div>
+                  <div><span className="text-xs text-muted-foreground">{t("appointments.durationLabel")}</span><p className="text-foreground">{t("appointments.duration").replace("{n}", String(selectedAppt.duration))}</p></div>
+                  <div><span className="text-xs text-muted-foreground">{t("appointments.status")}</span><Badge className={`text-xs ${statusColors[selectedAppt.status]}`}>{selectedAppt.status}</Badge></div>
+                  {selectedAppt.specialty && <div><span className="text-xs text-muted-foreground">{t("appointments.specialty")}</span><p className="text-foreground">{selectedAppt.specialty}</p></div>}
+                  {selectedAppt.hospitalName && <div><span className="text-xs text-muted-foreground">{t("appointments.hospital")}</span><p className="text-foreground">{selectedAppt.hospitalName}</p></div>}
                 </div>
                 {selectedAppt.notes && (
-                  <div className="p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
-                    <span className="text-xs text-[#A5ABB0]">{t("appointments.notes")}</span>
-                    <p className="text-sm text-[#EFF2F2] mt-1">{selectedAppt.notes}</p>
+                  <div className="p-3 rounded-xl glass border border-white/[.08]">
+                    <span className="text-xs text-muted-foreground">{t("appointments.notes")}</span>
+                    <p className="text-sm text-foreground mt-1">{selectedAppt.notes}</p>
                   </div>
                 )}
                 {selectedAppt.meetingLink && (
@@ -155,7 +155,7 @@ export default function DoctorAppointments() {
                 )}
                 {selectedAppt.patientPhone && (
                   <a href={`tel:${selectedAppt.patientPhone}`}>
-                    <Button variant="outline" className="w-full border-white/[.08] text-[#A5ABB0] rounded-xl text-xs">
+                    <Button variant="outline" className="w-full border-white/[.08] text-muted-foreground rounded-xl text-xs">
                       <Phone className="w-4 h-4 mr-1" /> {t("appointments.call")}: {selectedAppt.patientPhone}
                     </Button>
                   </a>

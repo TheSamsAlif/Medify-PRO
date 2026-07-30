@@ -81,7 +81,7 @@ export default function PrescriptionsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
             >
-              <Card className="border-0 shadow-lg shadow-black/5 hover:shadow-xl transition-all">
+              <Card className="glass-card hover:shadow-xl transition-all">
                 <CardContent className="p-5">
                   <div className="flex items-start gap-4">
                     <div className="w-14 h-14 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -106,7 +106,7 @@ export default function PrescriptionsPage() {
                       </div>
 
                       {prescription.diagnosis && (
-                        <div className="mt-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-900">
+                        <div className="mt-3 p-3 rounded-xl glass">
                           <p className="text-sm font-medium">রোগ নির্ণয়:</p>
                           <p className="text-sm text-gray-600 dark:text-gray-400">{prescription.diagnosis}</p>
                         </div>

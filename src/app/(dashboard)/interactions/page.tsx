@@ -125,7 +125,7 @@ export default function InteractionsPage() {
 
       <div className="grid lg:grid-cols-5 gap-6">
         <div className="lg:col-span-2 space-y-4">
-          <Card className="border-0 shadow-lg shadow-black/5">
+          <Card className="glass-card">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Search className="w-5 h-5 text-primary" />
@@ -238,7 +238,7 @@ export default function InteractionsPage() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.1 }}
                         >
-                          <Card className={`border-0 shadow-lg shadow-black/5 ${getSeverityColor(interaction.severity)} border`}>
+                          <Card className={`glass-card ${getSeverityColor(interaction.severity)} border`}>
                             <CardContent className="p-5">
                               <div className="flex items-start gap-3">
                                 <Icon className="w-6 h-6 mt-0.5 flex-shrink-0" />
@@ -265,7 +265,7 @@ export default function InteractionsPage() {
                 )}
 
                 {result.summary && (
-                  <Card className="border-0 shadow-lg shadow-black/5">
+                  <Card className="glass-card">
                     <CardContent className="p-5">
                       <div className="flex items-start gap-3">
                         <Info className="w-5 h-5 text-primary mt-0.5" />

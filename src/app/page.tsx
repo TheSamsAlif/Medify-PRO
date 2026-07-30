@@ -10,6 +10,7 @@ import {
   Menu, X, ChevronRight, Star, Users, Clock, Pill, ArrowRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { AiRobot } from "@/components/medical/ai-robot"
 
 export default function LandingPage() {
   const { data: session } = useSession()
@@ -37,7 +38,7 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#040406]">
+    <div className="min-h-screen relative z-0">
       <header className="fixed top-0 left-0 right-0 z-50 nav-glass">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
@@ -79,7 +80,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-white/[.06] bg-[#0a0d16]/95 backdrop-blur-xl"
+              className="md:hidden border-t border-white/[.12] glass rounded-none"
             >
               <div className="px-4 py-6 space-y-4">
                 {["Features", "Statistics", "About"].map(item => (
@@ -234,15 +235,12 @@ export default function LandingPage() {
                 </Link>
               </div>
               <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
-                className="relative">
-                <div className="glass-border-gradient overflow-hidden">
-                  <div className="aspect-[4/3] flex items-center justify-center p-12 bg-gradient-to-br from-[#F96801]/20 via-[#DE1B2D]/10 to-[#25C2C3]/10">
-                    <div className="text-center">
-                      <Heart className="w-24 h-24 mx-auto mb-6 gradient-text" fill="currentColor" />
-                      <h3 className="text-2xl font-bold text-[#EFF2F2]">Medify</h3>
-                      <p className="text-[#A5ABB0]">AI Healthcare Assistant</p>
-                    </div>
-                  </div>
+                className="relative flex flex-col items-center">
+                <div className="w-full max-w-[380px] aspect-[4/3]">
+                  <AiRobot />
+                </div>
+                <div className="text-center -mt-2">
+                  <span className="text-lg font-bold gradient-text tracking-wide">Medify AI Assistant</span>
                 </div>
               </motion.div>
             </motion.div>

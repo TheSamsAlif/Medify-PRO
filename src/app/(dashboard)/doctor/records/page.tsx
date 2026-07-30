@@ -50,30 +50,30 @@ export default function DoctorRecords() {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-[#EFF2F2]">{t("doctor.healthRecords")}</h2>
-          <p className="text-[#A5ABB0] mt-1">{t("records.subtitle")}</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">{t("doctor.healthRecords")}</h2>
+          <p className="text-muted-foreground mt-1">{t("records.subtitle")}</p>
         </div>
       </div>
 
       <Select value={selectedPatientId} onValueChange={(v) => v !== null && setSelectedPatientId(v)}>
-        <SelectTrigger className="w-64 bg-white/[.04] border-white/[.08] text-[#EFF2F2] text-xs mb-6">
+        <SelectTrigger className="w-64 glass border-white/[.08] text-foreground text-xs mb-6">
           <SelectValue placeholder={t("records.selectPatient")} />
         </SelectTrigger>
-        <SelectContent className="bg-[#0a0d16] border-white/[.08] text-[#EFF2F2]">
+        <SelectContent className="glass-card border-white/[.08] text-foreground">
           {patients.map(p => <SelectItem key={p.patientId} value={p.patientId}>{p.name}</SelectItem>)}
         </SelectContent>
       </Select>
 
       {!selectedPatientId ? (
-        <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
-          <Activity className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-          <p className="text-[#A5ABB0] text-sm">{t("records.selectPatient")}</p>
+        <Card className="border border-white/[.08] glass-card p-12 text-center">
+          <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+          <p className="text-muted-foreground text-sm">{t("records.selectPatient")}</p>
         </Card>
       ) : dataLoading ? (
-        <div className="space-y-2">{[1,2,3,4].map(i => <Skeleton key={i} className="h-20 w-full rounded-xl bg-white/[.04]" />)}</div>
+        <div className="space-y-2">{[1,2,3,4].map(i => <Skeleton key={i} className="h-20 w-full rounded-xl glass" />)}</div>
       ) : records && (records.healthRecords?.length > 0 || records.healthMetrics?.length > 0) ? (
         <Tabs defaultValue="ALL">
-          <TabsList className="bg-white/[.04] border border-white/[.08] p-1 rounded-xl mb-6 flex-wrap">
+          <TabsList className="glass border border-white/[.08] p-1 rounded-xl mb-6 flex-wrap">
             {recordTypes.map(rt => (
               <TabsTrigger key={rt.key} value={rt.key} className="data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500] rounded-lg text-xs">
                 <rt.icon className="w-3.5 h-3.5 mr-1" /> {t(rt.labelKey)}
@@ -84,25 +84,25 @@ export default function DoctorRecords() {
           {recordTypes.map(rt => (
             <TabsContent key={rt.key} value={rt.key}>
               {groupedRecords(rt.key).length === 0 ? (
-                <Card className="border border-white/[.08] bg-[#0a0d16] p-8 text-center">
-                  <FileText className="w-10 h-10 text-[#A5ABB0] mx-auto mb-2 opacity-50" />
-                  <p className="text-[#A5ABB0] text-sm">{t("records.noRecords")}</p>
+                <Card className="border border-white/[.08] glass-card p-8 text-center">
+                  <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-50" />
+                  <p className="text-muted-foreground text-sm">{t("records.noRecords")}</p>
                 </Card>
               ) : (
                 <div className="grid md:grid-cols-2 gap-3">
                   {groupedRecords(rt.key).map((r: any, i: number) => (
-                    <Card key={i} className="border border-white/[.08] bg-[#0a0d16]">
+                    <Card key={i} className="border border-white/[.08] glass-card">
                       <CardContent className="p-4 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[#25C2C3]/20 flex items-center justify-center">
                           {r.type === "LAB" ? <TestTube className="w-5 h-5 text-[#25C2C3]" /> : r.type === "RADIOLOGY" ? <Microscope className="w-5 h-5 text-[#25C2C3]" /> : <Heart className="w-5 h-5 text-[#25C2C3]" />}
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-[#EFF2F2]">{r.title}</p>
-                          <p className="text-xs text-[#A5ABB0]">{r.doctorName || r.hospital || ""} • {new Date(r.date).toLocaleDateString("bn-BD")}</p>
+                          <p className="text-sm font-medium text-foreground">{r.title}</p>
+                          <p className="text-xs text-muted-foreground">{r.doctorName || r.hospital || ""} • {new Date(r.date).toLocaleDateString("bn-BD")}</p>
                           {r.value && <p className="text-xs text-[#25C2C3] mt-0.5">{r.value} {r.unit}</p>}
                         </div>
                         {r.imageUrl && (
-                          <Button variant="outline" size="sm" className="rounded-xl text-xs border-white/[.08] text-[#A5ABB0]">
+                          <Button variant="outline" size="sm" className="rounded-xl text-xs border-white/[.08] text-muted-foreground">
                             <Eye className="w-3.5 h-3.5" />
                           </Button>
                         )}
@@ -115,18 +115,18 @@ export default function DoctorRecords() {
           ))}
 
           {records.healthMetrics?.length > 0 && (
-            <Card className="border border-white/[.08] bg-[#0a0d16] mt-6">
+            <Card className="border border-white/[.08] glass-card mt-6">
               <CardHeader>
-                <CardTitle className="text-lg text-[#EFF2F2] flex items-center gap-2"><Heart className="w-5 h-5 text-[#F96801]" /> {t("records.vitalTimeline")}</CardTitle>
+                <CardTitle className="text-lg text-foreground flex items-center gap-2"><Heart className="w-5 h-5 text-[#F96801]" /> {t("records.vitalTimeline")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-1">
                 {records.healthMetrics.slice(0, 20).map((m: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-white/[.04]">
+                  <div key={i} className="flex items-center justify-between p-2 rounded-lg glass">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-[#25C2C3]" />
-                      <span className="text-xs text-[#A5ABB0]">{m.type}</span>
+                      <span className="text-xs text-muted-foreground">{m.type}</span>
                     </div>
-                    <span className="text-sm font-medium text-[#EFF2F2]">{m.value} {m.unit}</span>
+                    <span className="text-sm font-medium text-foreground">{m.value} {m.unit}</span>
                     <span className="text-xs text-white/30">{new Date(m.date).toLocaleDateString("bn-BD")}</span>
                   </div>
                 ))}
@@ -135,9 +135,9 @@ export default function DoctorRecords() {
           )}
         </Tabs>
       ) : (
-        <Card className="border border-white/[.08] bg-[#0a0d16] p-12 text-center">
-          <Activity className="w-12 h-12 text-[#A5ABB0] mx-auto mb-3 opacity-50" />
-          <p className="text-[#A5ABB0] text-sm">{t("records.noRecords")}</p>
+        <Card className="border border-white/[.08] glass-card p-12 text-center">
+          <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+          <p className="text-muted-foreground text-sm">{t("records.noRecords")}</p>
         </Card>
       )}
     </motion.div>

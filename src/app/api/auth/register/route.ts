@@ -14,11 +14,21 @@ export async function POST(req: Request) {
       )
     }
 
-    if (!["PATIENT", "DOCTOR", "GUARDIAN"].includes(normalizedRole)) {
+    if (!["PATIENT", "DOCTOR", "GUARDIAN", "ADMIN"].includes(normalizedRole)) {
       return NextResponse.json(
         { error: "অবৈধ ব্যবহারকারী ভূমিকা" },
         { status: 400 }
       )
+    }
+
+    if (normalizedRole === "ADMIN") {
+      const { adminCode } = await req.json()
+      if (adminCode !== "MEDIFY-ADMIN-2024") {
+        return NextResponse.json(
+          { error: "অবৈধ অ্যাডমিন কোড" },
+          { status: 403 }
+        )
+      }
     }
 
     const existing = await prisma.user.findUnique({ where: { email } })

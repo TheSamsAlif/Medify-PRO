@@ -104,7 +104,7 @@ export function ScanPrescriptionDialog({ open, onOpenChange, onSuccess }: Props)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2]">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto glass border border-white/[.12] text-[#EFF2F2]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold gradient-text">প্রেসক্রিপশন স্ক্যান</DialogTitle>
           <DialogDescription className="text-[#A5ABB0]">

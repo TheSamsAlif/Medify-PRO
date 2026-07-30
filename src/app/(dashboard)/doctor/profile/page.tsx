@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
@@ -47,42 +46,42 @@ export default function DoctorProfile() {
   }
 
   if (loading) {
-    return <div className="space-y-4">{[1,2,3].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl bg-white/[.04]" />)}</div>
+    return <div className="space-y-4">{[1,2,3].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl glass" />)}</div>
   }
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Profile Header */}
-        <Card className="border border-white/[.08] bg-[#0a0d16] overflow-hidden">
-          <div className="gradient-primary p-6 text-[#160500] text-center relative">
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}
-              className="absolute top-4 right-4 bg-white/20 border-white/30 text-[#160500] hover:bg-white/30 text-xs rounded-xl">
-              <Edit3 className="w-3.5 h-3.5 mr-1.5" /> {t("doctorProfile.edit")}
-            </Button>
-            <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-white/30 shadow-lg">
-              <AvatarImage src={profile?.image || session?.user?.image || ""} />
-              <AvatarFallback className="bg-white/25 text-[#160500] text-3xl font-bold">
-                {profile?.name?.charAt(0) || "D"}
-              </AvatarFallback>
-            </Avatar>
-            <h2 className="text-2xl font-bold">{profile?.name || t("profile.doctor")}</h2>
-            <p className="text-[#160500]/80 text-sm">{profile?.specialization || ""}</p>
-            <div className="flex items-center justify-center gap-2 mt-3">
-              <Badge className="bg-white/25 text-[#160500] border-0 font-semibold">{t("profile.doctor")}</Badge>
-              {profile?.registrationNumber && (
-                <Badge className="bg-[#160500]/20 text-[#160500] border-0 font-mono font-bold">
-                  Reg: {profile.registrationNumber}
-                </Badge>
-              )}
-            </div>
+        <div className="relative glass-card rounded-2xl p-8 text-center border border-white/[.08] shadow-[0_8px_32px_rgba(249,104,1,0.08)]">
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[.02] to-transparent pointer-events-none" />
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}
+            className="absolute top-4 right-4 glass border-white/[.08] text-muted-foreground hover:text-foreground text-xs rounded-xl">
+            <Edit3 className="w-3.5 h-3.5 mr-1.5" /> {t("doctorProfile.edit")}
+          </Button>
+          <Avatar className="w-24 h-24 mx-auto mb-4 shadow-[0_0_30px_rgba(220,38,38,0.3)]">
+            <AvatarImage src={profile?.image || session?.user?.image || ""} />
+            <AvatarFallback className="bg-gradient-to-br from-[#DC2626] to-[#F96801] text-white text-3xl font-bold">
+              {profile?.name?.charAt(0) || "D"}
+            </AvatarFallback>
+          </Avatar>
+          <h2 className="text-2xl font-bold text-foreground">{profile?.name || t("profile.doctor")}</h2>
+          <div className="flex items-center justify-center gap-2 mt-3">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/[.06] border border-white/[.08] text-foreground shadow-[0_0_12px_rgba(220,38,38,0.1)]">
+              {t("profile.doctor")}
+            </span>
+            {profile?.registrationNumber && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono bg-white/[.06] border border-white/[.08] text-muted-foreground">
+                Reg: {profile.registrationNumber}
+              </span>
+            )}
           </div>
-        </Card>
+        </div>
 
         {/* Professional Info */}
-        <Card className="border border-white/[.08] bg-[#0a0d16]">
+        <Card className="border border-white/[.08] glass-card">
           <CardHeader>
-            <CardTitle className="text-lg text-[#EFF2F2] flex items-center gap-2"><Stethoscope className="w-5 h-5 text-[#F96801]" /> {t("doctorProfile.professionalInfo")}</CardTitle>
+            <CardTitle className="text-lg text-foreground flex items-center gap-2"><Stethoscope className="w-5 h-5 text-[#F96801]" /> {t("doctorProfile.professionalInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -94,12 +93,12 @@ export default function DoctorProfile() {
                 { icon: Hospital, label: t("doctorProfile.hospital"), value: profile?.hospitalName },
                 { icon: BadgeCheck, label: t("doctorProfile.registrationNo"), value: profile?.registrationNumber },
               ].map((item, i) => (
-                <div key={i} className="p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
+                <div key={i} className="p-3 rounded-xl glass border border-white/[.08]">
                   <div className="flex items-center gap-2 mb-1">
                     <item.icon className="w-4 h-4 text-[#F96801]" />
-                    <span className="text-xs text-[#A5ABB0]">{item.label}</span>
+                    <span className="text-xs text-muted-foreground">{item.label}</span>
                   </div>
-                  <p className="text-sm text-[#EFF2F2]">{item.value || "—"}</p>
+                  <p className="text-sm text-foreground">{item.value || "—"}</p>
                 </div>
               ))}
             </div>
@@ -107,39 +106,39 @@ export default function DoctorProfile() {
         </Card>
 
         {/* Contact & Location */}
-        <Card className="border border-white/[.08] bg-[#0a0d16]">
+        <Card className="border border-white/[.08] glass-card">
           <CardHeader>
-            <CardTitle className="text-lg text-[#EFF2F2] flex items-center gap-2"><MapPin className="w-5 h-5 text-[#25C2C3]" /> {t("doctorProfile.contactLocation")}</CardTitle>
+            <CardTitle className="text-lg text-foreground flex items-center gap-2"><MapPin className="w-5 h-5 text-[#25C2C3]" /> {t("doctorProfile.contactLocation")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
-              <Mail className="w-5 h-5 text-[#A5ABB0]" />
-              <div><p className="text-sm text-[#EFF2F2]">{profile?.email || t("common.noData")}</p><p className="text-xs text-[#A5ABB0]">{t("doctorProfile.email")}</p></div>
+            <div className="flex items-center gap-3 p-3 rounded-xl glass border border-white/[.08]">
+              <Mail className="w-5 h-5 text-muted-foreground" />
+              <div><p className="text-sm text-foreground">{profile?.email || t("common.noData")}</p><p className="text-xs text-muted-foreground">{t("doctorProfile.email")}</p></div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
-              <Phone className="w-5 h-5 text-[#A5ABB0]" />
-              <div><p className="text-sm text-[#EFF2F2]">{profile?.phone || t("common.noData")}</p><p className="text-xs text-[#A5ABB0]">{t("doctorProfile.phone")}</p></div>
+            <div className="flex items-center gap-3 p-3 rounded-xl glass border border-white/[.08]">
+              <Phone className="w-5 h-5 text-muted-foreground" />
+              <div><p className="text-sm text-foreground">{profile?.phone || t("common.noData")}</p><p className="text-xs text-muted-foreground">{t("doctorProfile.phone")}</p></div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
-              <MapPin className="w-5 h-5 text-[#A5ABB0]" />
-              <div><p className="text-sm text-[#EFF2F2]">{profile?.chamberLocation || t("common.noData")}</p><p className="text-xs text-[#A5ABB0]">{t("doctorProfile.chamberLocation")}</p></div>
+            <div className="flex items-center gap-3 p-3 rounded-xl glass border border-white/[.08]">
+              <MapPin className="w-5 h-5 text-muted-foreground" />
+              <div><p className="text-sm text-foreground">{profile?.chamberLocation || t("common.noData")}</p><p className="text-xs text-muted-foreground">{t("doctorProfile.chamberLocation")}</p></div>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
+            <div className="flex items-center justify-between p-3 rounded-xl glass border border-white/[.08]">
               <div className="flex items-center gap-3">
-                <Globe className="w-5 h-5 text-[#A5ABB0]" />
+                <Globe className="w-5 h-5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm text-[#EFF2F2]">{t(profile?.isAvailable ? "doctorProfile.available" : "doctorProfile.notAvailable")}</p>
-                  <p className="text-xs text-[#A5ABB0]">{t("doctorProfile.availability")}</p>
+                  <p className="text-sm text-foreground">{t(profile?.isAvailable ? "doctorProfile.available" : "doctorProfile.notAvailable")}</p>
+                  <p className="text-xs text-muted-foreground">{t("doctorProfile.availability")}</p>
                 </div>
               </div>
               <Switch checked={profile?.isAvailable !== false} disabled />
             </div>
             {profile?.languagesSpoken?.length > 0 && (
-              <div className="p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
-                <p className="text-xs text-[#A5ABB0] mb-2">{t("doctorProfile.languages")}</p>
+              <div className="p-3 rounded-xl glass border border-white/[.08]">
+                <p className="text-xs text-muted-foreground mb-2">{t("doctorProfile.languages")}</p>
                 <div className="flex gap-2 flex-wrap">
                   {profile.languagesSpoken.map((l: string, i: number) => (
-                    <Badge key={i} className="bg-[#25C2C3]/20 text-[#25C2C3] text-xs">{l}</Badge>
+                    <span key={i} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-white/[.06] border border-white/[.08] text-[#25C2C3]">{l}</span>
                   ))}
                 </div>
               </div>
@@ -149,59 +148,59 @@ export default function DoctorProfile() {
 
         {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="bg-[#0a0d16] border border-white/[.08] text-[#EFF2F2] max-w-xl max-h-[85vh] overflow-y-auto">
+          <DialogContent className="glass-card border border-white/[.08] text-foreground max-w-xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">{t("doctorProfile.editProfile")}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSave} className="space-y-4 pt-2">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">{t("doctorProfile.name")}</Label>
-                  <Input value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2]" />
+                  <Label className="text-xs text-muted-foreground">{t("doctorProfile.name")}</Label>
+                  <Input value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} className="glass border-white/[.08] text-foreground" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">{t("doctorProfile.phone")}</Label>
-                  <Input value={form.phone || ""} onChange={e => setForm({ ...form, phone: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2]" />
+                  <Label className="text-xs text-muted-foreground">{t("doctorProfile.phone")}</Label>
+                  <Input value={form.phone || ""} onChange={e => setForm({ ...form, phone: e.target.value })} className="glass border-white/[.08] text-foreground" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">{t("doctorProfile.degree")}</Label>
-                  <Input value={form.degree || ""} onChange={e => setForm({ ...form, degree: e.target.value })} placeholder="MBBS, FCPS, MD" className="bg-white/[.04] border-white/[.08] text-[#EFF2F2]" />
+                  <Label className="text-xs text-muted-foreground">{t("doctorProfile.degree")}</Label>
+                  <Input value={form.degree || ""} onChange={e => setForm({ ...form, degree: e.target.value })} placeholder="MBBS, FCPS, MD" className="glass border-white/[.08] text-foreground" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">{t("doctorProfile.specialization")}</Label>
-                  <Input value={form.specialization || ""} onChange={e => setForm({ ...form, specialization: e.target.value })} placeholder="Cardiology, Neurology" className="bg-white/[.04] border-white/[.08] text-[#EFF2F2]" />
+                  <Label className="text-xs text-muted-foreground">{t("doctorProfile.specialization")}</Label>
+                  <Input value={form.specialization || ""} onChange={e => setForm({ ...form, specialization: e.target.value })} placeholder="Cardiology, Neurology" className="glass border-white/[.08] text-foreground" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">{t("doctorProfile.experience")}</Label>
-                  <Input type="number" value={form.experience || ""} onChange={e => setForm({ ...form, experience: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2]" />
+                  <Label className="text-xs text-muted-foreground">{t("doctorProfile.experience")}</Label>
+                  <Input type="number" value={form.experience || ""} onChange={e => setForm({ ...form, experience: e.target.value })} className="glass border-white/[.08] text-foreground" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">{t("doctorProfile.consultationFee")}</Label>
-                  <Input type="number" value={form.consultationFee || ""} onChange={e => setForm({ ...form, consultationFee: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2]" />
+                  <Label className="text-xs text-muted-foreground">{t("doctorProfile.consultationFee")}</Label>
+                  <Input type="number" value={form.consultationFee || ""} onChange={e => setForm({ ...form, consultationFee: e.target.value })} className="glass border-white/[.08] text-foreground" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">{t("doctorProfile.hospital")}</Label>
-                  <Input value={form.hospitalName || ""} onChange={e => setForm({ ...form, hospitalName: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2]" />
+                  <Label className="text-xs text-muted-foreground">{t("doctorProfile.hospital")}</Label>
+                  <Input value={form.hospitalName || ""} onChange={e => setForm({ ...form, hospitalName: e.target.value })} className="glass border-white/[.08] text-foreground" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#A5ABB0]">{t("doctorProfile.registrationNo")}</Label>
-                  <Input value={form.registrationNumber || ""} onChange={e => setForm({ ...form, registrationNumber: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] font-mono" />
+                  <Label className="text-xs text-muted-foreground">{t("doctorProfile.registrationNo")}</Label>
+                  <Input value={form.registrationNumber || ""} onChange={e => setForm({ ...form, registrationNumber: e.target.value })} className="glass border-white/[.08] text-foreground font-mono" />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-[#A5ABB0]">{t("doctorProfile.address")}</Label>
-                <Textarea value={form.address || ""} onChange={e => setForm({ ...form, address: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2] min-h-[60px]" />
+                <Label className="text-xs text-muted-foreground">{t("doctorProfile.address")}</Label>
+                <Textarea value={form.address || ""} onChange={e => setForm({ ...form, address: e.target.value })} className="glass border-white/[.08] text-foreground min-h-[60px]" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-[#A5ABB0]">{t("doctorProfile.chamberLocation")}</Label>
-                <Input value={form.chamberLocation || ""} onChange={e => setForm({ ...form, chamberLocation: e.target.value })} className="bg-white/[.04] border-white/[.08] text-[#EFF2F2]" />
+                <Label className="text-xs text-muted-foreground">{t("doctorProfile.chamberLocation")}</Label>
+                <Input value={form.chamberLocation || ""} onChange={e => setForm({ ...form, chamberLocation: e.target.value })} className="glass border-white/[.08] text-foreground" />
               </div>
-              <div className="flex items-center justify-between p-3 rounded-xl bg-white/[.04] border border-white/[.08]">
-                <span className="text-sm text-[#EFF2F2]">{t("doctorProfile.available")}</span>
+              <div className="flex items-center justify-between p-3 rounded-xl glass border border-white/[.08]">
+                <span className="text-sm text-foreground">{t("doctorProfile.available")}</span>
                 <Switch checked={form.isAvailable !== false} onCheckedChange={v => setForm({ ...form, isAvailable: v })} />
               </div>
               <DialogFooter className="pt-4">
-                <Button type="button" variant="outline" onClick={() => setEditOpen(false)} className="border-white/[.08] text-[#A5ABB0]">{t("doctorProfile.cancel")}</Button>
+                <Button type="button" variant="outline" onClick={() => setEditOpen(false)} className="border-white/[.08] text-muted-foreground">{t("doctorProfile.cancel")}</Button>
                 <Button type="submit" disabled={saving} className="gradient-primary text-[#160500]">
                   {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   {t("doctorProfile.save")}

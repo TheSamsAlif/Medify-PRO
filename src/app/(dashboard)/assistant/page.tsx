@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { Send, Mic, Bot, User, Loader2, Trash2, Sparkles, Square, Copy, RefreshCw } from "lucide-react"
+import { AiRobot } from "@/components/medical/ai-robot"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -195,8 +196,8 @@ export default function AssistantPage() {
             <Bot className="w-6 h-6 text-[#160500]" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-[#EFF2F2]">AI স্বাস্থ্য সহায়ক</h2>
-            <p className="text-sm text-[#A5ABB0]">Gemini AI · বাংলা/English/Banglish</p>
+            <h2 className="text-2xl font-bold text-foreground">AI স্বাস্থ্য সহায়ক</h2>
+            <p className="text-sm text-muted-foreground">Gemini AI · বাংলা/English/Banglish</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -206,10 +207,10 @@ export default function AssistantPage() {
           </Badge>
           {messages.length > 0 && (
             <>
-              <Button variant="ghost" size="icon" onClick={retryLast} className="rounded-full text-[#A5ABB0] hover:text-[#25C2C3] hover:bg-white/[.06]" title="পুনরায় চেষ্টা">
+              <Button variant="ghost" size="icon" onClick={retryLast} className="rounded-full text-muted-foreground hover:text-[#25C2C3] hover:bg-white/[.06]" title="পুনরায় চেষ্টা">
                 <RefreshCw className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={clearChat} className="rounded-full text-[#A5ABB0] hover:text-[#DE1B2D] hover:bg-white/[.06]" title="চ্যাট ক্লিয়ার">
+              <Button variant="ghost" size="icon" onClick={clearChat} className="rounded-full text-muted-foreground hover:text-[#DE1B2D] hover:bg-white/[.06]" title="চ্যাট ক্লিয়ার">
                 <Trash2 className="w-4 h-4" />
               </Button>
             </>
@@ -217,15 +218,17 @@ export default function AssistantPage() {
         </div>
       </div>
 
-        <Card className="flex-1 flex flex-col border border-white/[.08] bg-[#0a0d16] backdrop-blur-xl overflow-hidden">
+        <Card className="flex-1 flex flex-col glass-card overflow-hidden">
         <ScrollArea ref={scrollRef} className="flex-1 p-4 md:p-6">
           {messages.length === 0 && !streamingText ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-              <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center mb-6 shadow-xl shadow-[#F96801]/30">
-                <Bot className="w-10 h-10 text-[#160500]" />
+              <div className="w-[280px] h-[280px] -mb-4">
+                <AiRobot />
               </div>
-              <h3 className="text-xl font-bold text-[#EFF2F2] mb-2">আমি Medify AI</h3>
-              <p className="text-[#A5ABB0] max-w-md mb-8">
+              <div className="glass px-5 py-2 rounded-2xl border border-white/[.08] mb-4">
+                <span className="text-base font-bold gradient-text">Medify AI</span>
+              </div>
+              <p className="text-muted-foreground max-w-md mb-8">
                 বাংলা, ইংরেজি বা বাংলিশ (Banglish) এ আপনার স্বাস্থ্য নিয়ে প্রশ্ন করুন।
               </p>
               <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
@@ -233,16 +236,16 @@ export default function AssistantPage() {
                   <button
                     key={i}
                     onClick={() => setInput(s.text)}
-                    className="flex items-start gap-3 p-4 rounded-2xl bg-white/[.04] border border-white/[.08] hover:border-[#F96801]/30 transition-all text-left"
+                    className="flex items-start gap-3 p-4 rounded-2xl glass border border-white/[.08] hover:border-[#F96801]/30 transition-all text-left"
                   >
                     <div className="w-8 h-8 rounded-lg bg-[#F96801]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Sparkles className="w-4 h-4 text-[#F96801]" />
                     </div>
-                    <p className="text-sm text-[#EFF2F2] text-left">{s.text}</p>
+                    <p className="text-sm text-foreground text-left">{s.text}</p>
                   </button>
                 ))}
               </div>
-              <p className="mt-8 text-xs text-[#A5ABB0]/60 max-w-md">
+              <p className="mt-8 text-xs text-muted-foreground/60 max-w-md">
                 * শিক্ষামূলক তথ্য, ডাক্তারের বিকল্প নয়
               </p>
             </div>
@@ -264,14 +267,14 @@ export default function AssistantPage() {
                     <div className={`rounded-2xl px-4 py-3 ${
                       msg.role === "user"
                         ? "bg-gradient-to-br from-[#F96801] to-[#FF8A1E] text-[#160500] rounded-tr-sm"
-                        : "bg-white/[.06] border border-white/[.08] text-[#EFF2F2] rounded-tl-sm"
+                        : "bg-white/[.06] border border-white/[.08] text-foreground rounded-tl-sm"
                     }`}>
                       {renderContent(msg.content)}
                     </div>
                     {msg.role === "assistant" && (
                       <button
                         onClick={() => copyMessage(msg.content)}
-                        className="absolute -bottom-5 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-[#A5ABB0] hover:text-[#EFF2F2]"
+                        className="absolute -bottom-5 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
                         title="কপি"
                       >
                         <Copy className="w-3 h-3" />
@@ -296,7 +299,7 @@ export default function AssistantPage() {
                     <Bot className="w-4 h-4 text-[#160500]" />
                   </div>
                   <div className="bg-white/[.06] border border-white/[.08] rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] md:max-w-[70%]">
-                    <p className="text-sm text-[#EFF2F2] whitespace-pre-wrap">{streamingText}</p>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">{streamingText}</p>
                     <span className="inline-block w-2 h-4 bg-[#F96801] animate-pulse ml-0.5" />
                   </div>
                 </motion.div>
@@ -314,7 +317,7 @@ export default function AssistantPage() {
                   <div className="bg-white/[.06] border border-white/[.08] rounded-2xl rounded-tl-sm px-4 py-3">
                     <div className="flex gap-2 items-center">
                       <Loader2 className="w-4 h-4 animate-spin text-[#F96801]" />
-                      <span className="text-sm text-[#A5ABB0]">ভাবছে...</span>
+                      <span className="text-sm text-muted-foreground">ভাবছে...</span>
                     </div>
                   </div>
                 </motion.div>
@@ -323,7 +326,7 @@ export default function AssistantPage() {
           )}
         </ScrollArea>
 
-        <div className="border-t border-white/[.08] p-4 bg-[#0a0d16]">
+        <div className="border-t border-white/[.08] p-4 glass-card">
           <div className="flex items-end gap-2">
             <div className="flex-1 relative">
               <textarea
@@ -333,7 +336,7 @@ export default function AssistantPage() {
                 onKeyDown={handleKeyDown}
                 placeholder="আপনার প্রশ্ন লিখুন... (Enter চাপুন পাঠাতে)"
                 rows={1}
-                className="w-full resize-none rounded-2xl border border-white/[.08] bg-white/[.04] px-4 py-3.5 text-sm text-[#EFF2F2] placeholder:text-[#A5ABB0] focus:outline-none focus:ring-2 focus:ring-[#F96801]/20 focus:border-[#F96801]/50 min-h-[48px] max-h-32"
+                className="w-full resize-none rounded-2xl border border-white/[.08] glass px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#F96801]/20 focus:border-[#F96801]/50 min-h-[48px] max-h-32"
                 style={{ height: "auto" }}
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement
@@ -346,7 +349,7 @@ export default function AssistantPage() {
               variant="ghost"
               size="icon"
               onClick={toggleRecording}
-              className={`rounded-full w-11 h-11 flex-shrink-0 ${isRecording ? "bg-[#DE1B2D] text-white animate-pulse" : "text-[#A5ABB0] hover:text-[#EFF2F2] hover:bg-white/[.06]"}`}
+              className={`rounded-full w-11 h-11 flex-shrink-0 ${isRecording ? "bg-[#DE1B2D] text-white animate-pulse" : "text-muted-foreground hover:text-foreground hover:bg-white/[.06]"}`}
             >
               {isRecording ? <Square className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
             </Button>
@@ -358,7 +361,7 @@ export default function AssistantPage() {
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </Button>
           </div>
-          <p className="text-[10px] text-[#A5ABB0]/60 mt-2 text-center">
+          <p className="text-[10px] text-muted-foreground/60 mt-2 text-center">
             Medify AI শিক্ষামূলক তথ্য প্রদান করে, এটি লাইসেন্সপ্রাপ্ত ডাক্তারের পরামর্শের বিকল্প নয়।
           </p>
         </div>

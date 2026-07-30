@@ -70,7 +70,7 @@ export default function AddRecordPage() {
         রেকর্ডে ফিরুন
       </Link>
 
-      <Card className="border-0 shadow-lg shadow-black/5 max-w-lg mx-auto">
+      <Card className="glass-card max-w-lg mx-auto">
         <CardContent className="p-6">
           <h2 className="text-xl font-bold mb-6">নতুন স্বাস্থ্য রেকর্ড</h2>
 
