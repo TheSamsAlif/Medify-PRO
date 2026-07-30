@@ -203,10 +203,19 @@
     }
   }
 
+  .app-bg {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(0,120,255,0.12), transparent 35%),
+      radial-gradient(circle at 80% 30%, rgba(255,120,0,0.10), transparent 35%),
+      radial-gradient(circle at 50% 80%, rgba(0,255,180,0.08), transparent 40%),
+      linear-gradient(135deg, #06070b 0%, #0a0d14 45%, #050608 100%);
+    min-height: 100vh;
+  }
+
   .sidebar-glass {
-    background: rgba(18,18,24,0.55);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(16,18,24,0.38);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-right: 1px solid rgba(255,255,255,0.08);
     box-shadow:
       0 12px 40px rgba(0,0,0,.35),
