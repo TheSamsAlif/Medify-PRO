@@ -16,7 +16,7 @@ export default function DashboardLayout({
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#040406]">
+      <div className="app-bg flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-[#F96801] border-t-transparent rounded-full animate-spin" />
           <span className="text-sm text-[#A5ABB0] font-mono">Loading...</span>
@@ -30,7 +30,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#040406]">
+    <div className="app-bg">
       <Sidebar />
       <div className="lg:pl-64">
         <TopBar />
