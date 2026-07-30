@@ -38,7 +38,13 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="min-h-screen relative z-0">
+    <div className="min-h-screen relative z-0"
+  style={{
+    backgroundImage: "url('/home-bg.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundAttachment: "fixed",
+  }}>
       <header className="fixed top-0 left-0 right-0 z-50 nav-glass">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
@@ -106,6 +112,7 @@ export default function LandingPage() {
 
       <main>
         <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50 pointer-events-none" />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
               className="text-center max-w-4xl mx-auto">

@@ -16,7 +16,12 @@ export default function DashboardLayout({
 
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen"
+        style={{
+          backgroundImage: "url('/home-bg.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}>
         <div className="flex flex-col items-center gap-4 glass px-12 py-10">
           <div className="w-10 h-10 border-2 border-[#F96801] border-t-transparent rounded-full animate-spin" />
           <span className="text-sm text-[#A5ABB0] font-mono">Loading...</span>
@@ -30,7 +35,13 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex flex-col lg:flex-row">
+    <div className="flex flex-col lg:flex-row min-h-screen"
+      style={{
+        backgroundImage: "url('/home-bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      }}>
       <Sidebar />
       <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
         <TopBar />
