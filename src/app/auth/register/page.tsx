@@ -43,7 +43,12 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{
+        backgroundImage: "url('/bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
         className="w-full max-w-md px-4 relative z-10">
@@ -79,8 +84,8 @@ export default function RegisterPage() {
                       onClick={() => setForm({ ...form, role: opt.value })}
                       className={`p-3 rounded-xl border text-center transition-all ${
                         form.role === opt.value
-                          ? "border-[#F96801] bg-[#F96801]/10 text-[#F96801]"
-                          : "border-white/[.08] bg-white/[.04] text-muted-foreground hover:border-white/[.15]"
+                          ? "border-[#F96801] glass text-[#F96801]"
+                          : "border-white/[.08] glass text-muted-foreground hover:border-white/[.15]"
                       }`}
                     >
                       <span className="text-lg block mb-1">{opt.icon}</span>
@@ -96,7 +101,7 @@ export default function RegisterPage() {
                   <Input placeholder="এডমিন কোড লিখুন"
                     value={form.adminCode}
                     onChange={e => setForm({ ...form, adminCode: e.target.value })}
-                    className="py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
+                    className="py-6 text-base rounded-xl glass border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
                   />
                 </motion.div>
               )}
@@ -107,7 +112,7 @@ export default function RegisterPage() {
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input id="name" placeholder="আপনার নাম"
                     value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="pl-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
+                    className="pl-11 py-6 text-base rounded-xl glass border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
                     required />
                 </div>
               </div>
@@ -118,7 +123,7 @@ export default function RegisterPage() {
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input id="email" type="email" placeholder="your@email.com"
                     value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="pl-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
+                    className="pl-11 py-6 text-base rounded-xl glass border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
                     required />
                 </div>
               </div>
@@ -129,7 +134,7 @@ export default function RegisterPage() {
                   <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A5ABB0]" />
                   <Input id="phone" type="tel" placeholder="+8801XXXXXXXXX"
                     value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    className="pl-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-[#EFF2F2] placeholder:text-[#A5ABB0] focus:border-[#F96801]/50" />
+                    className="pl-11 py-6 text-base rounded-xl glass border-white/[.08] text-[#EFF2F2] placeholder:text-[#A5ABB0] focus:border-[#F96801]/50" />
                 </div>
               </div>
 
@@ -139,7 +144,7 @@ export default function RegisterPage() {
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input id="password" type={showPassword ? "text" : "password"} placeholder="কমপক্ষে ৬ অক্ষর"
                     value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="pl-11 pr-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
+                    className="pl-11 pr-11 py-6 text-base rounded-xl glass border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
                     required minLength={6} />
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A5ABB0] hover:text-[#EFF2F2]">

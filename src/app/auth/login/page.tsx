@@ -44,7 +44,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{
+        backgroundImage: "url('/bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
         className="w-full max-w-md px-4 relative z-10">
@@ -71,7 +76,7 @@ export default function LoginPage() {
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A5ABB0]" />
                   <Input id="email" type="email" placeholder="your@email.com"
                     value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="pl-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
+                    className="pl-11 py-6 text-base rounded-xl glass border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
                     required autoComplete="email" />
                 </div>
               </div>
@@ -82,7 +87,7 @@ export default function LoginPage() {
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••"
                     value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="pl-11 pr-11 py-6 text-base rounded-xl bg-white/[.04] border border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
+                    className="pl-11 pr-11 py-6 text-base rounded-xl glass border-white/[.08] text-foreground placeholder:text-muted-foreground focus:border-[#F96801]/50"
                     required autoComplete="current-password" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A5ABB0] hover:text-[#EFF2F2]">
