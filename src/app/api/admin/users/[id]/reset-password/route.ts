@@ -11,7 +11,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     const { id } = await params
-    const { newPassword } = await req.json()
+    const { oldPassword, newPassword, notifyOldPassword } = await req.json()
 
     if (!newPassword || newPassword.length < 6) {
       return NextResponse.json({ error: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে" }, { status: 400 })
@@ -35,6 +35,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         adminId: session.user.id,
         adminName: session.user.name || null,
         adminEmail: session.user.email || null,
+      },
+    })
+
+    const passMsg = notifyOldPassword && oldPassword
+      ? `আপনার পূর্ববর্তী পাসওয়ার্ড: ${oldPassword}\nআপনার নতুন পাসওয়ার্ড: ${newPassword}`
+      : `আপনার নতুন পাসওয়ার্ড: ${newPassword}`
+
+    await prisma.notification.create({
+      data: {
+        userId: id,
+        title: "পাসওয়ার্ড রিসেট করা হয়েছে",
+        body: `এডমিন ${session.user.name || session.user.email} আপনার পাসওয়ার্ড রিসেট করেছেন।\n${passMsg}\n\nঅনুগ্রহ করে লগইন করে পাসওয়ার্ড পরিবর্তন করুন।`,
+        type: "PASSWORD_RESET",
+        data: { oldPassword: notifyOldPassword && oldPassword ? oldPassword : null, newPassword },
       },
     })
 

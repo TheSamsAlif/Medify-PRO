@@ -4,7 +4,8 @@ import { prisma } from "@/lib/db/prisma"
 
 export async function POST(req: Request) {
   try {
-    const { name, email, phone, password, role } = await req.json()
+    const body = await req.json()
+    const { name, email, phone, password, role, adminCode } = body
     const normalizedRole = (role || "PATIENT").toUpperCase()
 
     if (!email || !password || !name) {
@@ -22,7 +23,6 @@ export async function POST(req: Request) {
     }
 
     if (normalizedRole === "ADMIN") {
-      const { adminCode } = await req.json()
       if (adminCode !== "MEDIFY-ADMIN-2024") {
         return NextResponse.json(
           { error: "অবৈধ অ্যাডমিন কোড" },

@@ -222,7 +222,7 @@ export default function AssistantPage() {
         <ScrollArea ref={scrollRef} className="flex-1 p-4 md:p-6">
           {messages.length === 0 && !streamingText ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-              <div className="w-[280px] h-[280px] -mb-4">
+              <div className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] -mb-4">
                 <AiRobot />
               </div>
               <div className="glass px-5 py-2 rounded-2xl border border-white/[.08] mb-4">

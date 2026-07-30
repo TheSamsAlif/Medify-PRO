@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import { useSession } from "next-auth/react"
 import { redirect } from "next/navigation"
-import { Search, Plus, Pencil, Trash2, Lock, Check, X, ChevronLeft, ChevronRight, Filter, Users } from "lucide-react"
+import { Search, Plus, Pencil, Trash2, Lock, Check, X, ChevronLeft, ChevronRight, Filter, Users, Eye, EyeOff } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -62,9 +62,10 @@ export default function AdminUsersPage() {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [resetOpen, setResetOpen] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", role: "PATIENT", bloodGroup: "", age: "", gender: "MALE" })
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", oldPassword: "", role: "PATIENT", bloodGroup: "", age: "", gender: "MALE" })
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -118,7 +119,7 @@ export default function AdminUsersPage() {
       if (!res.ok) throw new Error("Failed")
       toast.success("ব্যবহারকারী তৈরি হয়েছে")
       setAddOpen(false)
-      setFormData({ name: "", email: "", phone: "", password: "", role: "PATIENT", bloodGroup: "", age: "", gender: "MALE" })
+      setFormData({ name: "", email: "", phone: "", password: "", oldPassword: "", role: "PATIENT", bloodGroup: "", age: "", gender: "MALE" })
       fetchUsers()
     } catch {
       toast.error("ব্যবহারকারী তৈরি করতে সমস্যা")
@@ -155,12 +156,13 @@ export default function AdminUsersPage() {
       const res = await fetch(`/api/admin/users/${selectedUser.id}/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: formData.password }),
+        body: JSON.stringify({ oldPassword: formData.oldPassword || "", newPassword: formData.password, notifyOldPassword: !!formData.oldPassword }),
       })
       if (!res.ok) throw new Error("Failed")
-      toast.success("পাসওয়ার্ড রিসেট হয়েছে")
+      toast.success("পাসওয়ার্ড রিসেট হয়েছে। ব্যবহারকারীকে নোটিফিকেশন পাঠানো হয়েছে।")
       setResetOpen(false)
-      setFormData(prev => ({ ...prev, password: "" }))
+      setFormData(prev => ({ ...prev, password: "", oldPassword: "" }))
+      setShowPassword(false)
     } catch {
       toast.error("পাসওয়ার্ড রিসেট করতে সমস্যা")
     } finally {
@@ -202,7 +204,7 @@ export default function AdminUsersPage() {
 
   const openEdit = (user: AdminUser) => {
     setSelectedUser(user)
-    setFormData({ name: user.name || "", email: user.email || "", phone: user.phone || "", password: "", role: user.role, bloodGroup: user.bloodGroup || "", age: String(user.age || ""), gender: user.gender || "MALE" })
+    setFormData({ name: user.name || "", email: user.email || "", phone: user.phone || "", password: "", oldPassword: "", role: user.role, bloodGroup: user.bloodGroup || "", age: String(user.age || ""), gender: user.gender || "MALE" })
     setEditOpen(true)
   }
 
@@ -406,7 +408,14 @@ export default function AdminUsersPage() {
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent className="dialog-glass sm:max-w-sm">
           <DialogHeader><DialogTitle className="text-foreground">পাসওয়ার্ড রিসেট</DialogTitle></DialogHeader>
-          <Input placeholder="নতুন পাসওয়ার্ড" type="password" value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))} className="glass border-white/[.08] text-foreground" />
+          <p className="text-xs text-muted-foreground -mt-2">বর্তমান পাসওয়ার্ড জানা থাকলে দিন (নতুন পাসওয়ার্ডসহ inbox এ পাঠানো হবে)</p>
+          <Input placeholder="বর্তমান পাসওয়ার্ড (ঐচ্ছিক)" type="text" value={formData.oldPassword || ""} onChange={e => setFormData(p => ({ ...p, oldPassword: e.target.value }))} className="glass border-white/[.08] text-foreground" />
+          <div className="relative">
+            <Input placeholder="নতুন পাসওয়ার্ড" type={showPassword ? "text" : "password"} value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))} className="glass border-white/[.08] text-foreground pr-10" />
+            <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer" type="button">
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
           <Button onClick={handleResetPassword} disabled={submitting} className="w-full gradient-primary text-[#160500] rounded-xl">
             {submitting ? <span className="w-4 h-4 border-2 border-[#160500] border-t-transparent rounded-full animate-spin mr-2" /> : null}
             রিসেট করুন

@@ -29,6 +29,8 @@ export function TopBar() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifLoading, setNotifLoading] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const fetchNotifications = useCallback(async () => {
     setNotifLoading(true)
@@ -84,16 +86,20 @@ export function TopBar() {
 
   const currentTitle = t("nav.dashboard")
 
+  useEffect(() => {
+    setSheetOpen(false)
+  }, [pathname])
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 lg:pl-64 nav-glass py-1">
+    <header className="fixed top-0 left-0 right-0 z-30 lg:pl-64 nav-glass py-1 pt-safe">
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center gap-3">
-          <Sheet>
-            <SheetTrigger className="lg:hidden rounded-full w-9 h-9 flex items-center justify-center text-[#A5ABB0] hover:text-[#EFF2F2] hover:bg-white/[.06] transition-colors">
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            <SheetTrigger className="lg:hidden rounded-full w-9 h-9 flex items-center justify-center text-[#A5ABB0] hover:text-[#EFF2F2] hover:bg-white/[.06] transition-colors touch-min">
               <Menu className="w-5 h-5" />
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-72 bg-transparent border-r border-white/[.06]">
-              <Sidebar />
+            <SheetContent side="left" className="p-0 w-72 bg-transparent border-r border-white/[.06] pt-safe">
+              <Sidebar onNavClick={() => setSheetOpen(false)} />
             </SheetContent>
           </Sheet>
           <h1 className="text-lg font-bold text-[#EFF2F2]">{currentTitle}</h1>
@@ -109,7 +115,13 @@ export function TopBar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
+          <button
+            onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+            className="md:hidden rounded-full w-9 h-9 flex items-center justify-center text-[#A5ABB0] hover:text-[#EFF2F2] hover:bg-white/[.06] transition-colors touch-min"
+          >
+            <Search className="w-4 h-4" />
+          </button>
           <DropdownMenu open={notifOpen} onOpenChange={setNotifOpen}>
             <DropdownMenuTrigger className="relative rounded-full w-9 h-9 flex items-center justify-center text-[#A5ABB0] hover:text-[#EFF2F2] hover:bg-white/[.06] transition-colors outline-none">
               <Bell className="w-4 h-4" />
@@ -205,6 +217,18 @@ export function TopBar() {
           </DropdownMenu>
         </div>
       </div>
+      {mobileSearchOpen && (
+        <div className="md:hidden px-4 pb-3">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A5ABB0]" />
+            <Input
+              placeholder={t("nav.search")}
+              className="pl-9 h-10 rounded-full bg-white/[.04] border border-white/[.08] text-sm text-[#EFF2F2] placeholder:text-[#A5ABB0] focus:border-[#F96801]/50 w-full"
+              autoFocus
+            />
+          </div>
+        </div>
+      )}
     </header>
   )
 }

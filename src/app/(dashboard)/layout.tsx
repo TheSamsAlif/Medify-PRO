@@ -45,7 +45,7 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
         <TopBar />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 pt-16 lg:pt-20 pb-24">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 pt-[calc(4rem+env(safe-area-inset-top,0px))] lg:pt-20 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
           {children}
         </main>
         <p className="text-center text-sm font-semibold gradient-text pb-5">

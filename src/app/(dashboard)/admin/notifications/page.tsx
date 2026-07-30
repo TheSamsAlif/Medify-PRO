@@ -45,7 +45,7 @@ export default function AdminNotificationsPage() {
       const res = await fetch("/api/admin/notifications")
       if (!res.ok) throw new Error("Failed")
       const d = await res.json()
-      setNotifications(d || [])
+      setNotifications(d.notifications || [])
     } catch {
       toast.error("নোটিফিকেশন লোড করতে সমস্যা")
     } finally {

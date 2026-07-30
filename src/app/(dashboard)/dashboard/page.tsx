@@ -484,7 +484,7 @@ export default function DashboardPage() {
                           <p className="text-sm font-medium text-foreground truncate">{p.patientName}</p>
                           <p className="text-xs text-muted-foreground truncate">{p.diagnosis || t("common.noData")} • {t("patients.prescriptionCount").replace("{n}", String(p.medicinesCount))}</p>
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">{new Date(p.createdAt).toLocaleDateString("bn", { day: "numeric", month: "short" })}</span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">{new Date(p.createdAt).toLocaleDateString("bn", { day: "numeric", month: "short" })}</span>
                       </div>
                     ))}
                   </div>

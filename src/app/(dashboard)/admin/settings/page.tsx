@@ -123,7 +123,7 @@ export default function AdminSettingsPage() {
                       <Input
                         value={form[setting.key] || ""}
                         onChange={e => setForm(p => ({ ...p, [setting.key]: e.target.value }))}
-                        className="glass border-white/[.08] text-foreground max-w-[200px] text-sm"
+                        className="glass border-white/[.08] text-foreground w-full sm:max-w-[200px] text-sm"
                       />
                     )}
                   </div>

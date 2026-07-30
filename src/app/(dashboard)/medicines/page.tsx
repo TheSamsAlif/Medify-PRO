@@ -191,7 +191,7 @@ export default function MedicinesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
               >
-                <Card className="glass-card overflow-hidden">
+                <Card className="glass-card">
                   <CardContent className="pt-4 pb-0">
                     <div className="flex items-center gap-3 mb-3 relative">
                       <button

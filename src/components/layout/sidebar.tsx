@@ -65,7 +65,7 @@ const navigation = [
   { key: "sidebar.adminFeedback", href: "/admin/feedback", icon: Heart, roles: ["ADMIN"] },
 ]
 
-export function Sidebar() {
+export function Sidebar({ onNavClick }: { onNavClick?: () => void }) {
   const pathname = usePathname()
   const { data: session } = useSession()
   const { t } = useI18n()
@@ -109,6 +109,7 @@ export function Sidebar() {
             <Link
               key={item.key}
               href={item.href}
+              onClick={onNavClick}
               className={cn(
                 "flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-medium transition-all duration-300",
                 isActive
@@ -140,7 +141,7 @@ export function Sidebar() {
         </div>
         <Button
           variant="ghost"
-          onClick={() => signOut({ callbackUrl: "/auth/login" })}
+          onClick={() => { signOut({ callbackUrl: "/auth/login" }); onNavClick?.() }}
           className={cn(
             "text-[#A5ABB0] hover:text-[#f87171] hover:bg-[#f87171]/10 mt-2 w-full rounded-2xl",
             collapsed ? "justify-center" : "justify-start gap-3"

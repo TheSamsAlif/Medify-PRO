@@ -108,7 +108,7 @@ export default function AdminAuditLogsPage() {
                       </div>
                     </div>
                   </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap ml-2 flex-shrink-0">
                     {new Date(log.createdAt).toLocaleString("bn")}
                   </span>
                 </motion.div>

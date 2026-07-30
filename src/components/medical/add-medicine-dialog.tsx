@@ -91,7 +91,7 @@ export function AddMedicineDialog({ open, onOpenChange, onSuccess }: AddMedicine
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="dialog-glass sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">নতুন ওষুধ যোগ করুন</DialogTitle>
           <DialogDescription className="text-base">
@@ -107,7 +107,7 @@ export function AddMedicineDialog({ open, onOpenChange, onSuccess }: AddMedicine
               placeholder="যেমন: Napa Extra, Metformin"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="py-6 text-base rounded-xl"
+              className="py-6 text-base rounded-xl glass border-white/[.08]"
               required
             />
           </div>
@@ -120,14 +120,14 @@ export function AddMedicineDialog({ open, onOpenChange, onSuccess }: AddMedicine
                 placeholder="যেমন: 500mg, 1 ট্যাবলেট"
                 value={form.dosage}
                 onChange={(e) => setForm({ ...form, dosage: e.target.value })}
-                className="py-6 text-base rounded-xl"
+                className="py-6 text-base rounded-xl glass border-white/[.08]"
                 required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="frequency" className="text-base font-medium">ফ্রিকোয়েন্সি</Label>
               <Select value={form.frequency} onValueChange={(v) => v && setForm({ ...form, frequency: v })}>
-                <SelectTrigger className="py-6 text-base rounded-xl">
+                <SelectTrigger className="py-6 text-base rounded-xl glass border-white/[.08]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -143,8 +143,8 @@ export function AddMedicineDialog({ open, onOpenChange, onSuccess }: AddMedicine
 
           <div className="space-y-2">
             <Label className="text-base font-medium">খাওয়ার সময়</Label>
-            <Select value={form.intakeTime} onValueChange={(v) => v && setForm({ ...form, intakeTime: v })}>
-              <SelectTrigger className="py-6 text-base rounded-xl">
+              <Select value={form.intakeTime} onValueChange={(v) => v && setForm({ ...form, intakeTime: v })}>
+                <SelectTrigger className="py-6 text-base rounded-xl glass border-white/[.08]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -170,7 +170,7 @@ export function AddMedicineDialog({ open, onOpenChange, onSuccess }: AddMedicine
                     className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
                       isSelected
                         ? "border-primary bg-primary/5 dark:bg-primary/10"
-                        : "border-gray-200 dark:border-gray-800 hover:border-gray-300"
+                        : "border-white/[.08] glass hover:border-white/[.15]"
                     }`}
                   >
                     <div className={`w-8 h-8 rounded-lg ${slot.color} flex items-center justify-center`}>
@@ -193,11 +193,11 @@ export function AddMedicineDialog({ open, onOpenChange, onSuccess }: AddMedicine
               placeholder="যেমন: খাওয়ার ৩০ মিনিট আগে নিতে হবে"
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              className="w-full min-h-[80px] px-4 py-3 rounded-xl border border-input bg-transparent text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-input"
+              className="w-full min-h-[80px] px-4 py-3 rounded-xl glass border-white/[.08] text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-input"
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-900">
+          <div className="flex items-center justify-between p-4 rounded-xl glass border-white/[.08]">
             <div>
               <p className="text-sm font-medium">রিমাইন্ডার সক্রিয় করুন</p>
               <p className="text-xs text-gray-500">পুশ নোটিফিকেশন ও অ্যালার্ম</p>

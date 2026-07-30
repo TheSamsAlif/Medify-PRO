@@ -62,6 +62,7 @@ export default function AdminUserDetailPage() {
   const [editing, setEditing] = useState(false)
   const [resetOpen, setResetOpen] = useState(false)
   const [newPassword, setNewPassword] = useState("")
+  const [oldPassword, setOldPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", role: "", bloodGroup: "", age: "", gender: "" })
   const [submitting, setSubmitting] = useState(false)
@@ -130,12 +131,13 @@ export default function AdminUserDetailPage() {
       const res = await fetch(`/api/admin/users/${id}/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: newPassword }),
+        body: JSON.stringify({ oldPassword, newPassword, notifyOldPassword: !!oldPassword }),
       })
       if (!res.ok) throw new Error("Failed")
-      toast.success("পাসওয়ার্ড রিসেট হয়েছে")
+      toast.success("পাসওয়ার্ড রিসেট হয়েছে। ব্যবহারকারীকে নোটিফিকেশন পাঠানো হয়েছে।")
       setResetOpen(false)
       setNewPassword("")
+      setOldPassword("")
     } catch {
       toast.error("রিসেট করতে সমস্যা")
     } finally {
@@ -351,9 +353,11 @@ export default function AdminUserDetailPage() {
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent className="dialog-glass sm:max-w-sm">
           <DialogHeader><DialogTitle className="text-foreground">পাসওয়ার্ড রিসেট</DialogTitle></DialogHeader>
+          <p className="text-xs text-muted-foreground -mt-2">বর্তমান পাসওয়ার্ড জানা থাকলে দিন (পাসওয়ার্ডসহ inbox এ নোটিফিকেশন যাবে)</p>
+          <Input placeholder="বর্তমান পাসওয়ার্ড (ঐচ্ছিক)" type="text" value={oldPassword} onChange={e => setOldPassword(e.target.value)} className="glass border-white/[.08] text-foreground" />
           <div className="relative">
             <Input placeholder="নতুন পাসওয়ার্ড" type={showPassword ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} className="glass border-white/[.08] text-foreground pr-10" />
-            <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer">
+            <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer" type="button">
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>

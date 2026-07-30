@@ -60,7 +60,7 @@ export function AddAppointmentDialog({ open, onOpenChange, onSuccess }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="dialog-glass sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">নতুন অ্যাপয়েন্টমেন্ট</DialogTitle>
           <DialogDescription>ডাক্তারের অ্যাপয়েন্টমেন্টের বিবরণ দিন</DialogDescription>
@@ -68,35 +68,35 @@ export function AddAppointmentDialog({ open, onOpenChange, onSuccess }: Props) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="doctorName">ডাক্তারের নাম</Label>
-            <Input id="doctorName" value={form.doctorName} onChange={e => setForm({ ...form, doctorName: e.target.value })} className="py-5 text-base rounded-xl" required placeholder="ডাক্তারের নাম" />
+            <Input id="doctorName" value={form.doctorName} onChange={e => setForm({ ...form, doctorName: e.target.value })} className="py-5 text-base rounded-xl glass border-white/[.08]" required placeholder="ডাক্তারের নাম" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="specialty">বিশেষত্ব</Label>
-              <Input id="specialty" value={form.specialty} onChange={e => setForm({ ...form, specialty: e.target.value })} className="py-5 text-base rounded-xl" placeholder="যেমন: কার্ডিওলজিস্ট" />
+              <Input id="specialty" value={form.specialty} onChange={e => setForm({ ...form, specialty: e.target.value })} className="py-5 text-base rounded-xl glass border-white/[.08]" placeholder="যেমন: কার্ডিওলজিস্ট" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="hospital">হাসপাতাল</Label>
-              <Input id="hospital" value={form.hospitalName} onChange={e => setForm({ ...form, hospitalName: e.target.value })} className="py-5 text-base rounded-xl" placeholder="হাসপাতালের নাম" />
+              <Input id="hospital" value={form.hospitalName} onChange={e => setForm({ ...form, hospitalName: e.target.value })} className="py-5 text-base rounded-xl glass border-white/[.08]" placeholder="হাসপাতালের নাম" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="date">তারিখ</Label>
-              <Input id="date" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className="py-5 text-base rounded-xl" required />
+              <Input id="date" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className="py-5 text-base rounded-xl glass border-white/[.08]" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="time">সময়</Label>
-              <Input id="time" type="time" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} className="py-5 text-base rounded-xl" required />
+              <Input id="time" type="time" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} className="py-5 text-base rounded-xl glass border-white/[.08]" required />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="location">ঠিকানা (ঐচ্ছিক)</Label>
-            <Input id="location" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} className="py-5 text-base rounded-xl" placeholder="হাসপাতালের ঠিকানা" />
+            <Input id="location" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} className="py-5 text-base rounded-xl glass border-white/[.08]" placeholder="হাসপাতালের ঠিকানা" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="notes">নোট (ঐচ্ছিক)</Label>
-            <textarea id="notes" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="w-full min-h-[60px] px-4 py-3 rounded-xl border border-input bg-transparent text-base" placeholder="কোনো বিশেষ নোট" />
+            <textarea id="notes" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="w-full min-h-[60px] px-4 py-3 rounded-xl glass border-white/[.08] text-base" placeholder="কোনো বিশেষ নোট" />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl py-5">বাতিল</Button>

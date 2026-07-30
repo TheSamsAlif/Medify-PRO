@@ -223,8 +223,8 @@ export default function HospitalsPage() {
   const displayedHospitals = hospitals;
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4">
-      <div className="lg:w-[420px] xl:w-[480px] flex flex-col gap-4 overflow-hidden">
+    <div className="min-h-[calc(100vh-8rem)] lg:h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4">
+      <div className="w-full lg:w-[420px] xl:w-[480px] flex flex-col gap-4 lg:overflow-hidden">
         <div>
           <h2 className="text-xl font-bold text-foreground">নিকটস্থ হাসপাতাল</h2>
           <p className="text-sm text-muted-foreground mt-0.5">OpenStreetMap - সম্পূর্ণ ফ্রি, কোনো API key লাগবে না</p>
@@ -259,7 +259,7 @@ export default function HospitalsPage() {
         )}
 
         <Tabs value={filter} onValueChange={setFilter}>
-          <TabsList className="rounded-xl p-1 glass border border-white/[.08]">
+          <TabsList className="rounded-xl p-1 glass border border-white/[.08] overflow-x-auto flex-nowrap">
             <TabsTrigger value="all" className="rounded-lg text-xs data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500]">সব</TabsTrigger>
             <TabsTrigger value="hospital" className="rounded-lg text-xs data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500]">হাসপাতাল</TabsTrigger>
             <TabsTrigger value="diagnostic" className="rounded-lg text-xs data-[state=active]:bg-[#F96801] data-[state=active]:text-[#160500]">ডায়াগনস্টিক</TabsTrigger>

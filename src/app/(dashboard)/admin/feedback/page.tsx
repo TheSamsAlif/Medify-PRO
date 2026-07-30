@@ -63,7 +63,7 @@ export default function AdminFeedbackPage() {
       const res = await fetch(`/api/admin/feedback${params}`)
       if (!res.ok) throw new Error("Failed")
       const d = await res.json()
-      setFeedbacks(d || [])
+      setFeedbacks(d.feedback || [])
     } catch {
       toast.error("ফিডব্যাক লোড করতে সমস্যা")
     } finally {
