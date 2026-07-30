@@ -203,6 +203,20 @@
     }
   }
 
+  .sidebar-glass {
+    background: rgba(18,18,24,0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+      0 12px 40px rgba(0,0,0,.35),
+      inset 0 1px rgba(255,255,255,.05);
+    transition:
+      background .25s ease,
+      backdrop-filter .25s ease,
+      box-shadow .25s ease;
+  }
+
   .glass-border-gradient {
     border-radius: 18px;
     background: rgba(255,255,255,.035);

@@ -67,7 +67,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-full glass border-r border-white/[.06] transition-all duration-300 hidden lg:flex flex-col",
+        "fixed left-0 top-0 z-40 h-full sidebar-glass transition-all duration-300 hidden lg:flex flex-col",
         collapsed ? "w-20" : "w-64"
       )}
     >
@@ -102,7 +102,7 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-[#F96801]/12 text-[#F96801]"
+                  ? "bg-[#F96801]/12 text-[#F96801] shadow-[0_0_20px_-8px_rgba(249,104,1,0.3)]"
                   : "text-[#A5ABB0] hover:bg-white/[.04] hover:text-[#EFF2F2]"
               )}
             >
