@@ -45,6 +45,16 @@ export default function LandingPage() {
     backgroundPosition: "center",
     backgroundAttachment: "fixed",
   }}>
+      <video
+        className="fixed inset-0 w-full h-full object-cover -z-10 pointer-events-none"
+        autoPlay
+        muted
+        loop
+        playsInline
+        poster="/home-bg.png"
+      >
+        <source src="/home-bg.mp4" type="video/mp4" />
+      </video>
       <header className="fixed top-0 left-0 right-0 z-50 nav-glass pt-safe">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
