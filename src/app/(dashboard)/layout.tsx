@@ -18,7 +18,7 @@ export default function DashboardLayout({
     return (
       <div className="flex items-center justify-center min-h-screen"
         style={{
-          backgroundImage: "url('/home-bg.png')",
+          backgroundImage: "url('/home-bg-1.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}>
@@ -37,7 +37,7 @@ export default function DashboardLayout({
   return (
     <div className="flex flex-col lg:flex-row min-h-screen"
       style={{
-        backgroundImage: "url('/home-bg.png')",
+        backgroundImage: "url('/home-bg-1.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed",
