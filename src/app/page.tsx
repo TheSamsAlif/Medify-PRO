@@ -46,7 +46,7 @@ export default function LandingPage() {
     backgroundAttachment: "fixed",
   }}>
       <video
-        className="absolute inset-0 w-full h-full object-cover -z-10"
+        className="absolute inset-0 w-full h-full object-contain -z-10"
         src="/home-bg.mp4"
         poster="/home-bg-1.png"
         autoPlay
