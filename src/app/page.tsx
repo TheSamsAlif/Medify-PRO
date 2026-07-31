@@ -40,21 +40,11 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen relative z-0"
   style={{
-    backgroundImage: "url('/home-bg-1.png')",
+    backgroundImage: "url('/home-bg-2.png')",
     backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundAttachment: "fixed",
   }}>
-      <video
-        className="absolute inset-0 w-full h-full object-contain -z-10"
-        src="/home-bg.mp4"
-        poster="/home-bg-1.png"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-      />
       <header className="fixed top-0 left-0 right-0 z-50 nav-glass pt-safe">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
