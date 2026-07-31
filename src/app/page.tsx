@@ -40,7 +40,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen relative z-0"
   style={{
-    backgroundImage: "url('/home-bg-2.png')",
+    backgroundImage: "url('/home-bg-1.png')",
     backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundAttachment: "fixed",
